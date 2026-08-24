@@ -1,0 +1,58 @@
+name: iOS tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test Entrevoix
+    runs-on: macos-26
+    env:
+      SOURCE_PACKAGES_PATH: ${{ github.workspace }}/.ci/SourcePackages
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Restore Swift package cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.SOURCE_PACKAGES_PATH }}
+          key: ${{ runner.os }}-xcode-26-swiftpm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-26-swiftpm-
+
+      - name: Select an available iPhone simulator
+        id: simulator
+        shell: bash
+        run: |
+          simulator_id="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/{print $2; exit}')"
+          test -n "$simulator_id"
+          echo "id=$simulator_id" >> "$GITHUB_OUTPUT"
+
+      - name: Start iPhone simulator
+        shell: bash
+        run: |
+          simulator_id="${{ steps.simulator.outputs.id }}"
+          if ! xcrun simctl list devices | grep -F "$simulator_id" | grep -q '(Booted)'; then
+            xcrun simctl boot "$simulator_id"
+          fi
+
+      - name: Run tests
+        run: >-
+          xcodebuild test
+          -project Entrevoix.xcodeproj
+          -scheme Entrevoix
+          -destination "id=${{ steps.simulator.outputs.id }}"
+          -clonedSourcePackagesDirPath "$SOURCE_PACKAGES_PATH"
+          CODE_SIGNING_ALLOWED=NO
