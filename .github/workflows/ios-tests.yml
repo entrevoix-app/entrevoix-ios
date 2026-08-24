@@ -1,0 +1,39 @@
+name: iOS tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test Entrevoix
+    runs-on: macos-26
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Select an available iPhone simulator
+        id: simulator
+        shell: bash
+        run: |
+          simulator_id="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/{print $2; exit}')"
+          test -n "$simulator_id"
+          echo "id=$simulator_id" >> "$GITHUB_OUTPUT"
+
+      - name: Run tests
+        run: >-
+          xcodebuild test
+          -project Entrevoix.xcodeproj
+          -scheme Entrevoix
+          -destination "id=${{ steps.simulator.outputs.id }}"
+          CODE_SIGNING_ALLOWED=NO

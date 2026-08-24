@@ -23,6 +23,13 @@
 			remoteGlobalIDString = A01B2C3D4E5F607182930704;
 			remoteInfo = EntrevoixKeyboard;
 		};
+		B01B2C3D4E5F607182930001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A01B2C3D4E5F607182930901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A01B2C3D4E5F607182930701;
+			remoteInfo = Entrevoix;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,11 +50,13 @@
 		A01B2C3D4E5F607182930301 /* Entrevoix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Entrevoix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A01B2C3D4E5F607182930302 /* EntrevoixKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EntrevoixKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A01B2C3D4E5F607182930303 /* KeyboardHandoff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHandoff.swift; sourceTree = "<group>"; };
+		B01B2C3D4E5F607182930002 /* EntrevoixTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EntrevoixTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A01B2C3D4E5F607182930401 /* Entrevoix */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Entrevoix; sourceTree = "<group>"; };
 		A01B2C3D4E5F607182930402 /* Keyboard */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Keyboard; sourceTree = "<group>"; };
+		B01B2C3D4E5F607182930003 /* EntrevoixTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = EntrevoixTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +77,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B01B2C3D4E5F607182930006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -77,6 +93,7 @@
 				A01B2C3D4E5F607182930401 /* Entrevoix */,
 				A01B2C3D4E5F607182930402 /* Keyboard */,
 				A01B2C3D4E5F607182930603 /* Shared */,
+				B01B2C3D4E5F607182930003 /* EntrevoixTests */,
 				A01B2C3D4E5F607182930602 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -86,6 +103,7 @@
 			children = (
 				A01B2C3D4E5F607182930301 /* Entrevoix.app */,
 				A01B2C3D4E5F607182930302 /* EntrevoixKeyboard.appex */,
+				B01B2C3D4E5F607182930002 /* EntrevoixTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -150,6 +168,28 @@
 			productReference = A01B2C3D4E5F607182930302 /* EntrevoixKeyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		B01B2C3D4E5F607182930005 /* EntrevoixTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B01B2C3D4E5F607182930007 /* Build configuration list for PBXNativeTarget "EntrevoixTests" */;
+			buildPhases = (
+				B01B2C3D4E5F607182930008 /* Sources */,
+				B01B2C3D4E5F607182930006 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B01B2C3D4E5F607182930009 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B01B2C3D4E5F607182930003 /* EntrevoixTests */,
+			);
+			name = EntrevoixTests;
+			packageProductDependencies = (
+			);
+			productName = EntrevoixTests;
+			productReference = B01B2C3D4E5F607182930002 /* EntrevoixTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -165,6 +205,10 @@
 					};
 					A01B2C3D4E5F607182930704 = {
 						CreatedOnToolsVersion = 26.0;
+					};
+					B01B2C3D4E5F607182930005 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = A01B2C3D4E5F607182930701;
 					};
 				};
 			};
@@ -188,6 +232,7 @@
 			targets = (
 				A01B2C3D4E5F607182930701 /* Entrevoix */,
 				A01B2C3D4E5F607182930704 /* EntrevoixKeyboard */,
+				B01B2C3D4E5F607182930005 /* EntrevoixTests */,
 			);
 		};
 /* End PBXProject section */
@@ -226,6 +271,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B01B2C3D4E5F607182930008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -233,6 +285,11 @@
 			isa = PBXTargetDependency;
 			target = A01B2C3D4E5F607182930704 /* EntrevoixKeyboard */;
 			targetProxy = 81D95E1B303CADC000CED821 /* PBXContainerItemProxy */;
+		};
+		B01B2C3D4E5F607182930009 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A01B2C3D4E5F607182930701 /* Entrevoix */;
+			targetProxy = B01B2C3D4E5F607182930001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -371,6 +428,42 @@
 			};
 			name = Release;
 		};
+		B01B2C3D4E5F607182930010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.entrevoix.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Entrevoix.app/Entrevoix";
+			};
+			name = Debug;
+		};
+		B01B2C3D4E5F607182930011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.entrevoix.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Entrevoix.app/Entrevoix";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -397,6 +490,15 @@
 			buildConfigurations = (
 				A01B2C3D4E5F607182931201 /* Debug */,
 				A01B2C3D4E5F607182931202 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B01B2C3D4E5F607182930007 /* Build configuration list for PBXNativeTarget "EntrevoixTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B01B2C3D4E5F607182930010 /* Debug */,
+				B01B2C3D4E5F607182930011 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
