@@ -173,13 +173,13 @@ private struct ProvidersSettingsView: View {
         Form {
             Section {
                 if model.preferences.providerCatalog.isEmpty {
-                    ContentUnavailableView("No provider configured", systemImage: "network", description: Text("Add an OpenAI provider to enable transcription and text cleanup."))
-                    Button("Add OpenAI provider") { isAddingProvider = true }
+                    ContentUnavailableView("No provider configured", systemImage: "network", description: Text("Add an OpenAI provider for transcription, or Anthropic for text cleanup."))
+                    Button("Add provider") { isAddingProvider = true }
                 } else {
                     ForEach(model.preferences.providerCatalog) { provider in
                         Label(provider.displayName, systemImage: provider.systemImageName)
                     }
-                    Button("Add another OpenAI provider") { isAddingProvider = true }
+                    Button("Add another provider") { isAddingProvider = true }
                 }
             }
         }
@@ -324,24 +324,52 @@ private struct AddProviderView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: PreferencesModel
     @State private var apiKey = ""
+    @State private var kind: ProviderKind = .openAI
 
     var body: some View {
         NavigationStack {
             Form {
+                Section("Provider") {
+                    Picker("Provider", selection: $kind) {
+                        ForEach(ProviderKind.allCases) { kind in
+                            Text(kind.title).tag(kind)
+                        }
+                    }
+                }
                 Section {
                     SecureField("API key", text: $apiKey).autocorrectionDisabled()
                 } footer: {
                     Text("The key is stored in the device Keychain; it is never written to Entrevoix preferences.")
                 }
             }
-            .navigationTitle("OpenAI")
+            .navigationTitle(kind.title)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") { model.addOpenAIProvider(apiKey: apiKey); dismiss() }
-                        .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    Button("Add") {
+                        switch kind {
+                        case .openAI: model.addOpenAIProvider(apiKey: apiKey)
+                        case .anthropic: model.addAnthropicProvider(apiKey: apiKey)
+                        }
+                        dismiss()
+                    }
+                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
+        }
+    }
+}
+
+private enum ProviderKind: CaseIterable, Identifiable {
+    case openAI
+    case anthropic
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .openAI: "OpenAI"
+        case .anthropic: "Anthropic"
         }
     }
 }
