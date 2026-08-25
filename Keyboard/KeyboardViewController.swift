@@ -6,7 +6,8 @@ import UIKit
 @MainActor
 @Observable
 private final class KeyboardDictationViewModel {
-    var statusMessage = "Tap Dictate to speak"
+    var statusMessage = "Toucher pour commencer à dicter"
+    var isDictationActive = false
     var needsInputModeSwitchKey = false
 
     var requestDictation: (() -> Void)?
@@ -14,6 +15,7 @@ private final class KeyboardDictationViewModel {
 }
 
 private struct KeyboardDictationView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var model: KeyboardDictationViewModel
 
     var body: some View {
@@ -31,6 +33,11 @@ private struct KeyboardDictationView: View {
             }
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
+            .tint(model.isDictationActive ? .red : .blue)
+            .animation(
+                reduceMotion ? .linear(duration: 0.1) : .easeInOut(duration: 0.2),
+                value: model.isDictationActive
+            )
             .padding(.top, 16)
             .accessibilityLabel("Start dictation")
             .accessibilityHint("Requests dictation from the Entrevoix app")
@@ -80,6 +87,7 @@ final class KeyboardViewController: UIInputViewController {
         super.viewWillDisappear(animated)
         resultPollingTimer?.invalidate()
         resultPollingTimer = nil
+        model.isDictationActive = false
     }
 
     override func viewWillLayoutSubviews() {
@@ -128,6 +136,7 @@ final class KeyboardViewController: UIInputViewController {
 
     @objc private func requestDictation() {
         guard hasFullAccess else {
+            model.isDictationActive = false
             model.statusMessage = "Enable Full Access for Entrevoix in Keyboard Settings to dictate."
             return
         }
@@ -136,6 +145,7 @@ final class KeyboardViewController: UIInputViewController {
         activeRequestID = request.id
         KeyboardHandoffStore.clearResult(for: request.id)
         KeyboardHandoffStore.writeRequest(request)
+        model.isDictationActive = true
         model.statusMessage = "Waiting for Entrevoix"
     }
 
@@ -147,10 +157,13 @@ final class KeyboardViewController: UIInputViewController {
 
         switch result.state {
         case .requested:
+            model.isDictationActive = true
             model.statusMessage = "Waiting for Entrevoix"
         case .recording:
+            model.isDictationActive = true
             model.statusMessage = "Listening…"
         case .transcribing:
+            model.isDictationActive = false
             model.statusMessage = "Transcribing…"
         case .completed:
             if let transcript = result.transcript, !transcript.isEmpty {
@@ -167,6 +180,7 @@ final class KeyboardViewController: UIInputViewController {
     private func finish(requestID: UUID, message: String) {
         KeyboardHandoffStore.clearResult(for: requestID)
         activeRequestID = nil
+        model.isDictationActive = false
         model.statusMessage = message
     }
 }
