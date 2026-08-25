@@ -102,25 +102,25 @@ private struct DictationHomeView: View {
 private extension TranscriptionLanguage {
     var displayName: String {
         switch self {
-        case .automatic: "Automatic"
-        case .arabic: "Arabic"
-        case .chinese: "Chinese"
-        case .dutch: "Dutch"
-        case .english: "English"
-        case .french: "French"
-        case .german: "German"
-        case .hindi: "Hindi"
-        case .indonesian: "Indonesian"
-        case .italian: "Italian"
-        case .japanese: "Japanese"
-        case .korean: "Korean"
-        case .polish: "Polish"
-        case .portuguese: "Portuguese"
-        case .russian: "Russian"
-        case .spanish: "Spanish"
-        case .turkish: "Turkish"
-        case .ukrainian: "Ukrainian"
-        case .vietnamese: "Vietnamese"
+        case .automatic: String(localized: "Automatic")
+        case .arabic: String(localized: "Arabic")
+        case .chinese: String(localized: "Chinese")
+        case .dutch: String(localized: "Dutch")
+        case .english: String(localized: "English")
+        case .french: String(localized: "French")
+        case .german: String(localized: "German")
+        case .hindi: String(localized: "Hindi")
+        case .indonesian: String(localized: "Indonesian")
+        case .italian: String(localized: "Italian")
+        case .japanese: String(localized: "Japanese")
+        case .korean: String(localized: "Korean")
+        case .polish: String(localized: "Polish")
+        case .portuguese: String(localized: "Portuguese")
+        case .russian: String(localized: "Russian")
+        case .spanish: String(localized: "Spanish")
+        case .turkish: String(localized: "Turkish")
+        case .ukrainian: String(localized: "Ukrainian")
+        case .vietnamese: String(localized: "Vietnamese")
         }
     }
 }
