@@ -38,7 +38,13 @@ final class PreferencesModel {
         cleanupLibraryCloudSync.onRemoteLibrary = { [weak self] library in
             self?.applySharedCleanupLibrary(library)
         }
-        cleanupLibraryCloudSync.start()
+        cleanupLibraryCloudSync.start(
+            with: CleanupLibrary(
+                prompts: preferences.cleanupPrompts,
+                workflows: preferences.cleanupWorkflows
+            ),
+            seedLocalLibrary: cleanupLibraryDiffersFromDefault
+        )
     }
 
     func binding<Value>(for keyPath: WritableKeyPath<AppPreferences, Value>) -> Binding<Value> {
@@ -90,6 +96,72 @@ final class PreferencesModel {
         configurationError = nil
     }
 
+    func refreshCleanupLibrary() {
+        cleanupLibraryCloudSync.refresh()
+    }
+
+    func setActiveCleanupPrompt(_ id: UUID?) {
+        let selection = id.map(CleanupTransformationSelection.prompt)
+        guard selection == nil || preferences.isValidCleanupSelection(selection) else { return }
+        preferences.activeCleanupSelection = selection
+        synchronizeLegacyPrompt()
+        persist()
+    }
+
+    @discardableResult
+    func saveCleanupPrompt(_ prompt: CleanupPrompt) -> CleanupPromptValidationError? {
+        let savedPrompt: CleanupPrompt
+        switch CleanupPromptLibrary.validatedSaving(prompt, into: preferences.cleanupPrompts) {
+        case .success(let value): savedPrompt = value
+        case .failure(let error): return error
+        }
+        if let index = preferences.cleanupPrompts.firstIndex(where: { $0.id == savedPrompt.id }) {
+            preferences.cleanupPrompts[index] = savedPrompt
+        } else {
+            preferences.cleanupPrompts.append(savedPrompt)
+        }
+        if preferences.activeCleanupSelection == nil {
+            preferences.activeCleanupSelection = .prompt(savedPrompt.id)
+        }
+        synchronizeLegacyPrompt()
+        persist()
+        publishCleanupLibrary()
+        return nil
+    }
+
+    func deleteCleanupPrompt(id: UUID) {
+        guard let index = preferences.cleanupPrompts.firstIndex(where: { $0.id == id }) else { return }
+        preferences.cleanupPrompts.remove(at: index)
+        preferences.cleanupWorkflows = preferences.cleanupWorkflows.map { workflow in
+            var value = workflow
+            value.promptIDs.removeAll { $0 == id }
+            return value
+        }
+        preferences.normalizeCleanupSelection()
+        synchronizeLegacyPrompt()
+        persist()
+        publishCleanupLibrary()
+    }
+
+    func resetPromptLibrary() {
+        let prompt = CleanupPrompt(
+            id: AppPreferences.defaultCleanupPromptID,
+            name: "Standard",
+            systemImageName: "wand.and.stars",
+            instructions: AppPreferences.defaultCleanupPrompt
+        )
+        preferences.cleanupPrompts = [prompt]
+        preferences.cleanupWorkflows = preferences.cleanupWorkflows.map { workflow in
+            var value = workflow
+            value.promptIDs = []
+            return value
+        }
+        preferences.activeCleanupSelection = .prompt(prompt.id)
+        synchronizeLegacyPrompt()
+        persist()
+        publishCleanupLibrary()
+    }
+
     private func persist() {
         preferences.normalizeProviderReferences()
         preferences.normalizeCleanupSelection()
@@ -130,12 +202,35 @@ final class PreferencesModel {
         preferences.cleanupPrompts = library.prompts
         preferences.cleanupWorkflows = library.workflows
         preferences.normalizeCleanupSelection()
+        synchronizeLegacyPrompt()
+        persist()
+    }
+
+    private func publishCleanupLibrary() {
+        cleanupLibraryCloudSync.publish(
+            CleanupLibrary(
+                prompts: preferences.cleanupPrompts,
+                workflows: preferences.cleanupWorkflows
+            )
+        )
+    }
+
+    private func synchronizeLegacyPrompt() {
         if case .prompt(let id) = preferences.activeCleanupSelection,
            let prompt = preferences.cleanupPrompts.first(where: { $0.id == id }) {
             preferences.cleanupPrompt = prompt.instructions
             preferences.cleanupPromptMode = .custom
         }
-        persist()
+    }
+
+    private var cleanupLibraryDiffersFromDefault: Bool {
+        guard preferences.cleanupWorkflows.isEmpty,
+              preferences.cleanupPrompts.count == 1,
+              let prompt = preferences.cleanupPrompts.first else { return true }
+        return prompt.id != AppPreferences.defaultCleanupPromptID
+            || prompt.name != "Standard"
+            || prompt.systemImageName != "wand.and.stars"
+            || prompt.instructions != AppPreferences.defaultCleanupPrompt
     }
 
     private static func migrated(_ preferences: AppPreferences) -> AppPreferences {
@@ -148,7 +243,19 @@ final class PreferencesModel {
 
 @MainActor
 private final class UnavailableCleanupLibraryCloudStore: CleanupLibraryCloudStoring {
+    func bootstrap(localLibrary _: CleanupLibrary, seedLocalLibrary _: Bool) async throws -> CleanupLibrary {
+        throw UnavailableError()
+    }
+
     func fetchLibrary() async throws -> CleanupLibrary? {
+        throw UnavailableError()
+    }
+
+    func saveLibrary(_: CleanupLibrary, replacing _: CleanupLibrary?) async throws {
+        throw UnavailableError()
+    }
+
+    func ensureSubscription(id _: String) async throws {
         throw UnavailableError()
     }
 

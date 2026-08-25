@@ -210,6 +210,33 @@ struct PreferencesModelTests {
         #expect(model.recoveryMessage == nil)
         #expect(model.configurationError == nil)
     }
+
+    @Test("Prompt CRUD persists changes and keeps workflows consistent")
+    func promptCRUDPersistsAndRepairsWorkflows() {
+        let original = CleanupPrompt(name: "Original", systemImageName: "sparkles", instructions: "Original text")
+        let workflow = CleanupWorkflow(name: "Chain", promptIDs: [original.id])
+        let store = PreferencesStoreSpy(loadResult: .loaded(AppPreferences(
+            cleanupPrompts: [original],
+            cleanupWorkflows: [workflow],
+            activeCleanupSelection: .prompt(original.id)
+        )))
+        let model = PreferencesModel(preferencesStore: store, secretStore: SecretStoreSpy())
+
+        let edited = CleanupPrompt(id: original.id, name: "Edited", systemImageName: "quote.bubble", instructions: "Edited text")
+        #expect(model.saveCleanupPrompt(edited) == nil)
+        #expect(model.preferences.cleanupPrompts == [edited])
+        #expect(model.preferences.cleanupPrompt == "Edited text")
+
+        model.deleteCleanupPrompt(id: edited.id)
+        #expect(model.preferences.cleanupPrompts.isEmpty)
+        #expect(model.preferences.cleanupWorkflows.first?.promptIDs.isEmpty == true)
+        #expect(model.preferences.activeCleanupSelection == nil)
+
+        model.resetPromptLibrary()
+        #expect(model.preferences.cleanupPrompts.count == 1)
+        #expect(model.preferences.activeCleanupSelection == .prompt(AppPreferences.defaultCleanupPromptID))
+        #expect(store.saved.count >= 3)
+    }
 }
 
 private final class PreferencesStoreSpy: PreferencesStoring {
