@@ -26,10 +26,10 @@ final class PreferencesModel {
             preferences = Self.migrated(savedPreferences)
         case .recovered(let savedPreferences):
             preferences = Self.migrated(savedPreferences)
-            recoveryMessage = "Your previous settings could not be read, so Entrevoix restored safe defaults."
+            recoveryMessage = String(localized: "Your previous settings could not be read, so Entrevoix restored safe defaults.")
         case .incompatible(let schemaVersion):
             preferences = AppPreferences()
-            recoveryMessage = "These settings were created by a newer version of Entrevoix (schema \(schemaVersion))."
+            recoveryMessage = "\(String(localized: "These settings were created by a newer version of Entrevoix.")) (\(String(localized: "schema")) \(schemaVersion))."
         }
     }
 
@@ -59,7 +59,7 @@ final class PreferencesModel {
             preferences.selectedSTTProviderID = nil
             preferences.selectedTTTProviderID = nil
             preferences.cleanupEnabled = false
-            configurationError = "The API key could not be stored securely. \(error.localizedDescription)"
+            configurationError = String(localized: "The API key could not be stored securely.") + " " + error.localizedDescription
         }
     }
 
@@ -94,7 +94,7 @@ final class PreferencesModel {
             preferences.providerCatalog.removeAll { $0.id == .remote(provider.id) }
             preferences.selectedTTTProviderID = previousTTTProviderID
             preferences.cleanupEnabled = previousCleanupEnabled
-            configurationError = "The API key could not be stored securely. \(error.localizedDescription)"
+            configurationError = String(localized: "The API key could not be stored securely.") + " " + error.localizedDescription
         }
     }
 

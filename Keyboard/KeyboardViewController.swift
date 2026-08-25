@@ -6,7 +6,7 @@ import UIKit
 @MainActor
 @Observable
 private final class KeyboardDictationViewModel {
-    var statusMessage = "Toucher pour commencer à dicter"
+    var statusMessage = String(localized: "Tap to start dictating")
     var isDictationActive = false
     var needsInputModeSwitchKey = false
 
@@ -137,7 +137,7 @@ final class KeyboardViewController: UIInputViewController {
     @objc private func requestDictation() {
         guard hasFullAccess else {
             model.isDictationActive = false
-            model.statusMessage = "Enable Full Access for Entrevoix in Keyboard Settings to dictate."
+            model.statusMessage = String(localized: "Enable Full Access for Entrevoix in Keyboard Settings to dictate.")
             return
         }
 
@@ -146,7 +146,7 @@ final class KeyboardViewController: UIInputViewController {
         KeyboardHandoffStore.clearResult(for: request.id)
         KeyboardHandoffStore.writeRequest(request)
         model.isDictationActive = true
-        model.statusMessage = "Waiting for Entrevoix"
+        model.statusMessage = String(localized: "Waiting for Entrevoix")
     }
 
     @objc private func refreshResult() {
@@ -158,22 +158,22 @@ final class KeyboardViewController: UIInputViewController {
         switch result.state {
         case .requested:
             model.isDictationActive = true
-            model.statusMessage = "Waiting for Entrevoix"
+            model.statusMessage = String(localized: "Waiting for Entrevoix")
         case .recording:
             model.isDictationActive = true
-            model.statusMessage = "Listening…"
+            model.statusMessage = String(localized: "Listening…")
         case .transcribing:
             model.isDictationActive = false
-            model.statusMessage = "Transcribing…"
+            model.statusMessage = String(localized: "Transcribing…")
         case .completed:
             if let transcript = result.transcript, !transcript.isEmpty {
                 textDocumentProxy.insertText(transcript)
             }
-            finish(requestID: activeRequestID, message: "Ready")
+            finish(requestID: activeRequestID, message: String(localized: "Ready"))
         case .failed:
-            finish(requestID: activeRequestID, message: result.message ?? "Dictation failed")
+            finish(requestID: activeRequestID, message: result.message ?? String(localized: "Dictation failed"))
         case .cancelled:
-            finish(requestID: activeRequestID, message: "Dictation cancelled")
+            finish(requestID: activeRequestID, message: String(localized: "Dictation cancelled"))
         }
     }
 

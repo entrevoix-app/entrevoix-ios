@@ -1,0 +1,17 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Dictation cancelled" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dictée annulée" } } } },
+    "Dictation failed" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Échec de la dictée" } } } },
+    "Enable Full Access for Entrevoix in Keyboard Settings to dictate." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Activez l’accès complet pour Entrevoix dans les réglages de clavier afin de dicter." } } } },
+    "Listening…" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Écoute…" } } } },
+    "Next keyboard" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Clavier suivant" } } } },
+    "Ready" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prêt" } } } },
+    "Requests dictation from the Entrevoix app" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Demande une dictée à l’app Entrevoix" } } } },
+    "Start dictation" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Commencer la dictée" } } } },
+    "Tap to start dictating" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Touchez pour commencer à dicter" } } } },
+    "Transcribing…" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Transcription…" } } } },
+    "Waiting for Entrevoix" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "En attente d’Entrevoix" } } } }
+  },
+  "version" : "1.0"
+}
