@@ -51,24 +51,9 @@ final class PreferencesModel {
         )
     }
 
-    func addOpenAIProvider(apiKey: String) {
-        var provider = RemoteProviderProfile.openAI()
-        provider.name = "OpenAI"
-        preferences.providerCatalog.append(.remote(provider))
-        preferences.selectedSTTProviderID = .remote(provider.id)
-        preferences.selectedTTTProviderID = .remote(provider.id)
-        preferences.cleanupEnabled = true
-
-        do {
-            try secretStore.save([provider.id: apiKey])
-            persist()
-        } catch {
-            preferences.providerCatalog.removeAll { $0.id == .remote(provider.id) }
-            preferences.selectedSTTProviderID = nil
-            preferences.selectedTTTProviderID = nil
-            preferences.cleanupEnabled = false
-            configurationError = String(localized: "The API key could not be stored securely.") + " " + error.localizedDescription
-        }
+    @discardableResult
+    func addOpenAIProvider(apiKey: String) -> Bool {
+        addRemoteProvider(RemoteProviderProfile.openAI(), apiKey: apiKey)
     }
 
     @discardableResult
@@ -86,24 +71,16 @@ final class PreferencesModel {
         persist()
     }
 
-    func addAnthropicProvider(apiKey: String) {
-        let previousTTTProviderID = preferences.selectedTTTProviderID
-        let previousCleanupEnabled = preferences.cleanupEnabled
-        var provider = RemoteProviderProfile.anthropic()
-        provider.name = "Anthropic"
-        preferences.providerCatalog.append(.remote(provider))
-        preferences.selectedTTTProviderID = .remote(provider.id)
-        preferences.cleanupEnabled = true
+    @discardableResult
+    func addAnthropicProvider(apiKey: String) -> Bool {
+        addRemoteProvider(RemoteProviderProfile.anthropic(), apiKey: apiKey)
+    }
 
-        do {
-            try secretStore.save([provider.id: apiKey])
-            persist()
-        } catch {
-            preferences.providerCatalog.removeAll { $0.id == .remote(provider.id) }
-            preferences.selectedTTTProviderID = previousTTTProviderID
-            preferences.cleanupEnabled = previousCleanupEnabled
-            configurationError = String(localized: "The API key could not be stored securely.") + " " + error.localizedDescription
-        }
+    @discardableResult
+    func addOpenAICompatibleProvider(baseURL: String, apiKey: String) -> Bool {
+        var provider = RemoteProviderProfile.compatible()
+        provider.baseURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        return addRemoteProvider(provider, apiKey: apiKey)
     }
 
     func reset() {
@@ -117,6 +94,36 @@ final class PreferencesModel {
         preferences.normalizeProviderReferences()
         preferences.normalizeCleanupSelection()
         preferencesStore.save(preferences)
+    }
+
+    private func addRemoteProvider(_ provider: RemoteProviderProfile, apiKey: String) -> Bool {
+        let validationIssues = provider.validationIssues(apiKey: apiKey)
+        guard validationIssues.isEmpty,
+              provider.configuration(for: provider.stt == nil ? .ttt : .stt)?.endpointURL != nil else {
+            configurationError = String(localized: "Enter a valid http:// or https:// URL.")
+            return false
+        }
+
+        let previousPreferences = preferences
+        preferences.providerCatalog.append(.remote(provider))
+        if provider.stt != nil {
+            preferences.selectedSTTProviderID = .remote(provider.id)
+        }
+        if provider.ttt != nil {
+            preferences.selectedTTTProviderID = .remote(provider.id)
+            preferences.cleanupEnabled = true
+        }
+
+        do {
+            try secretStore.save([provider.id: apiKey])
+            persist()
+            configurationError = nil
+            return true
+        } catch {
+            preferences = previousPreferences
+            configurationError = String(localized: "The API key could not be stored securely.") + " " + error.localizedDescription
+            return false
+        }
     }
 
     private func applySharedCleanupLibrary(_ library: CleanupLibrary) {
