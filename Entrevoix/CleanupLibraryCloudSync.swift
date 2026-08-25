@@ -168,7 +168,7 @@ final class CloudKitCleanupLibraryStore: CleanupLibraryCloudStoring {
                 didFindMarker = true
                 continue
             }
-            guard record[Self.tombstoneKey] as? Bool != true,
+            guard (record[Self.tombstoneKey] as? NSNumber)?.boolValue != true,
                   let rawKind = record[Self.kindKey] as? String,
                   let kind = ItemKind(rawValue: rawKind),
                   let payload = record[Self.payloadKey] as? Data else { continue }
@@ -215,14 +215,14 @@ final class CloudKitCleanupLibraryStore: CleanupLibraryCloudStoring {
         record[Self.kindKey] = kind.rawValue as CKRecordValue
         record[Self.payloadKey] = payload as CKRecordValue
         record[Self.orderKey] = order as CKRecordValue
-        record[Self.tombstoneKey] = false as CKRecordValue
+        record[Self.tombstoneKey] = NSNumber(value: false)
         return record
     }
 
     private func tombstoneRecord(kind: ItemKind, id: UUID) -> CKRecord {
         let record = CKRecord(recordType: Self.itemRecordType, recordID: CKRecord.ID(recordName: "\(kind.rawValue):\(id.uuidString)"))
         record[Self.kindKey] = kind.rawValue as CKRecordValue
-        record[Self.tombstoneKey] = true as CKRecordValue
+        record[Self.tombstoneKey] = NSNumber(value: true)
         return record
     }
 
@@ -230,9 +230,4 @@ final class CloudKitCleanupLibraryStore: CleanupLibraryCloudStoring {
         case prompt
         case workflow
     }
-}
-
-struct CleanupLibrary: Codable, Equatable, Sendable {
-    var prompts: [CleanupPrompt]
-    var workflows: [CleanupWorkflow]
 }
