@@ -1,22 +1,80 @@
+import Foundation
+import Observation
+import SwiftUI
 import UIKit
 
-final class KeyboardViewController: UIInputViewController {
-    private let statusLabel = UILabel()
-    private let microphoneButton = UIButton(type: .system)
-    private let modeButton = UIButton(type: .system)
-    private let nextKeyboardButton = UIButton(type: .system)
-    private let manualKeyboardStack = UIStackView()
+@MainActor
+@Observable
+private final class KeyboardDictationViewModel {
+    var statusMessage = "Toucher pour commencer à dicter"
+    var isDictationActive = false
+    var needsInputModeSwitchKey = false
 
-    private var isShowingManualKeyboard = false {
-        didSet { updateVisibleMode() }
+    var requestDictation: (() -> Void)?
+    var selectNextKeyboard: (() -> Void)?
+}
+
+private struct KeyboardDictationView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Bindable var model: KeyboardDictationViewModel
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(model.statusMessage)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility3)
+
+            Button(action: { model.requestDictation?() }) {
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 32, weight: .medium))
+                    .frame(width: 80, height: 80)
+            }
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.circle)
+            .tint(model.isDictationActive ? .red : .blue)
+            .animation(
+                reduceMotion ? .linear(duration: 0.1) : .easeInOut(duration: 0.2),
+                value: model.isDictationActive
+            )
+            .padding(.top, 16)
+            .accessibilityLabel("Start dictation")
+            .accessibilityHint("Requests dictation from the Entrevoix app")
+
+            Spacer(minLength: 0)
+
+            HStack {
+                Spacer()
+
+                if model.needsInputModeSwitchKey {
+                    Button(action: { model.selectNextKeyboard?() }) {
+                        Image(systemName: "globe")
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.circle)
+                    .accessibilityLabel("Next keyboard")
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(8)
+        .background(.clear)
     }
+}
+
+final class KeyboardViewController: UIInputViewController {
+    private let model = KeyboardDictationViewModel()
+    private var hostingController: UIHostingController<KeyboardDictationView>?
+
     private var activeRequestID: UUID?
     private var resultPollingTimer: Timer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        hasDictationKey = true
         configureView()
-        updateVisibleMode()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -29,134 +87,40 @@ final class KeyboardViewController: UIInputViewController {
         super.viewWillDisappear(animated)
         resultPollingTimer?.invalidate()
         resultPollingTimer = nil
+        model.isDictationActive = false
     }
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
+        model.needsInputModeSwitchKey = needsInputModeSwitchKey
     }
 
     private func configureView() {
-        view.backgroundColor = .secondarySystemBackground
+        view.backgroundColor = .clear
+        view.isOpaque = false
 
-        statusLabel.font = .preferredFont(forTextStyle: .footnote)
-        statusLabel.textColor = .secondaryLabel
-        statusLabel.textAlignment = .center
-        statusLabel.numberOfLines = 2
-        statusLabel.adjustsFontForContentSizeCategory = true
-
-        var microphoneConfiguration = UIButton.Configuration.filled()
-        microphoneConfiguration.title = "Dictate"
-        microphoneConfiguration.image = UIImage(systemName: "mic.fill")
-        microphoneConfiguration.imagePadding = 8
-        microphoneConfiguration.cornerStyle = .large
-        microphoneButton.configuration = microphoneConfiguration
-        microphoneButton.titleLabel?.font = .preferredFont(forTextStyle: .headline)
-        microphoneButton.addTarget(self, action: #selector(requestDictation), for: .touchUpInside)
-        microphoneButton.accessibilityLabel = "Start dictation"
-        microphoneButton.accessibilityHint = "Requests dictation from the Entrevoix app"
-
-        modeButton.configuration = .bordered()
-        modeButton.addTarget(self, action: #selector(toggleInputMode), for: .touchUpInside)
-
-        var nextKeyboardConfiguration = UIButton.Configuration.bordered()
-        nextKeyboardConfiguration.image = UIImage(systemName: "globe")
-        nextKeyboardButton.configuration = nextKeyboardConfiguration
-        nextKeyboardButton.addTarget(self, action: #selector(selectNextKeyboard), for: .touchUpInside)
-        nextKeyboardButton.accessibilityLabel = "Next keyboard"
-
-        manualKeyboardStack.axis = .vertical
-        manualKeyboardStack.spacing = 6
-        manualKeyboardStack.distribution = .fillEqually
-        manualKeyboardStack.addArrangedSubview(keyRow("QWERTYUIOP"))
-        manualKeyboardStack.addArrangedSubview(keyRow("ASDFGHJKL"))
-        manualKeyboardStack.addArrangedSubview(keyRow("ZXCVBNM"))
-        manualKeyboardStack.addArrangedSubview(bottomKeyRow())
-
-        let rootStack = UIStackView(arrangedSubviews: [
-            statusLabel,
-            microphoneButton,
-            manualKeyboardStack,
-            controlsRow()
-        ])
-        rootStack.axis = .vertical
-        rootStack.spacing = 8
-        rootStack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(rootStack)
-
-        NSLayoutConstraint.activate([
-            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
-            rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
-            rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -8),
-            microphoneButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 56),
-            manualKeyboardStack.heightAnchor.constraint(greaterThanOrEqualToConstant: 176)
-        ])
-    }
-
-    private func controlsRow() -> UIStackView {
-        let spacer = UIView()
-        let row = UIStackView(arrangedSubviews: [modeButton, spacer, nextKeyboardButton])
-        row.axis = .horizontal
-        row.spacing = 8
-        NSLayoutConstraint.activate([
-            modeButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
-            nextKeyboardButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
-            nextKeyboardButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 44)
-        ])
-        return row
-    }
-
-    private func keyRow(_ characters: String) -> UIStackView {
-        let row = UIStackView()
-        row.axis = .horizontal
-        row.spacing = 6
-        row.distribution = .fillEqually
-        characters.forEach { character in
-            row.addArrangedSubview(keyButton(String(character)))
+        model.requestDictation = { [weak self] in
+            self?.requestDictation()
         }
-        return row
-    }
-
-    private func bottomKeyRow() -> UIStackView {
-        let deleteButton = keyButton("⌫", insertsCharacter: false)
-        deleteButton.addTarget(self, action: #selector(deleteBackward), for: .touchUpInside)
-        deleteButton.accessibilityLabel = "Delete"
-
-        let spaceButton = keyButton("space", insertsCharacter: false)
-        spaceButton.addTarget(self, action: #selector(insertSpace), for: .touchUpInside)
-
-        let returnButton = keyButton("return", insertsCharacter: false)
-        returnButton.addTarget(self, action: #selector(insertReturn), for: .touchUpInside)
-
-        let row = UIStackView(arrangedSubviews: [deleteButton, spaceButton, returnButton])
-        row.axis = .horizontal
-        row.spacing = 6
-        row.distribution = .fillProportionally
-        return row
-    }
-
-    private func keyButton(_ title: String, insertsCharacter: Bool = true) -> UIButton {
-        var configuration = UIButton.Configuration.gray()
-        configuration.title = title
-        configuration.cornerStyle = .medium
-        let button = UIButton(type: .system)
-        button.configuration = configuration
-        button.titleLabel?.font = .preferredFont(forTextStyle: .body)
-        if insertsCharacter {
-            button.addTarget(self, action: #selector(insertCharacter(_:)), for: .touchUpInside)
+        model.selectNextKeyboard = { [weak self] in
+            self?.advanceToNextInputMode()
         }
-        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-        return button
-    }
 
-    private func updateVisibleMode() {
-        manualKeyboardStack.isHidden = !isShowingManualKeyboard
-        microphoneButton.isHidden = isShowingManualKeyboard
-        statusLabel.text = activeRequestID == nil
-            ? "Tap Dictate to speak"
-            : "Waiting for Entrevoix"
-        modeButton.configuration?.title = isShowingManualKeyboard ? "Dictate" : "ABC"
+        let hostingController = UIHostingController(rootView: KeyboardDictationView(model: model))
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.isOpaque = false
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+
+        addChild(hostingController)
+        view.addSubview(hostingController.view)
+        NSLayoutConstraint.activate([
+            hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        hostingController.didMove(toParent: self)
+        self.hostingController = hostingController
     }
 
     private func startResultPolling() {
@@ -172,7 +136,8 @@ final class KeyboardViewController: UIInputViewController {
 
     @objc private func requestDictation() {
         guard hasFullAccess else {
-            statusLabel.text = "Enable Full Access for Entrevoix in Keyboard Settings to dictate."
+            model.isDictationActive = false
+            model.statusMessage = "Enable Full Access for Entrevoix in Keyboard Settings to dictate."
             return
         }
 
@@ -180,7 +145,8 @@ final class KeyboardViewController: UIInputViewController {
         activeRequestID = request.id
         KeyboardHandoffStore.clearResult(for: request.id)
         KeyboardHandoffStore.writeRequest(request)
-        statusLabel.text = "Waiting for Entrevoix"
+        model.isDictationActive = true
+        model.statusMessage = "Waiting for Entrevoix"
     }
 
     @objc private func refreshResult() {
@@ -191,11 +157,14 @@ final class KeyboardViewController: UIInputViewController {
 
         switch result.state {
         case .requested:
-            statusLabel.text = "Waiting for Entrevoix"
+            model.isDictationActive = true
+            model.statusMessage = "Waiting for Entrevoix"
         case .recording:
-            statusLabel.text = "Listening…"
+            model.isDictationActive = true
+            model.statusMessage = "Listening…"
         case .transcribing:
-            statusLabel.text = "Transcribing…"
+            model.isDictationActive = false
+            model.statusMessage = "Transcribing…"
         case .completed:
             if let transcript = result.transcript, !transcript.isEmpty {
                 textDocumentProxy.insertText(transcript)
@@ -211,31 +180,7 @@ final class KeyboardViewController: UIInputViewController {
     private func finish(requestID: UUID, message: String) {
         KeyboardHandoffStore.clearResult(for: requestID)
         activeRequestID = nil
-        statusLabel.text = message
-    }
-
-    @objc private func toggleInputMode() {
-        isShowingManualKeyboard.toggle()
-    }
-
-    @objc private func insertCharacter(_ sender: UIButton) {
-        guard let character = sender.configuration?.title, character.count == 1 else { return }
-        textDocumentProxy.insertText(character.lowercased())
-    }
-
-    @objc private func insertSpace() {
-        textDocumentProxy.insertText(" ")
-    }
-
-    @objc private func insertReturn() {
-        textDocumentProxy.insertText("\n")
-    }
-
-    @objc private func deleteBackward() {
-        textDocumentProxy.deleteBackward()
-    }
-
-    @objc private func selectNextKeyboard() {
-        advanceToNextInputMode()
+        model.isDictationActive = false
+        model.statusMessage = message
     }
 }
