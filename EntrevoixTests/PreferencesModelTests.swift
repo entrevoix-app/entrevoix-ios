@@ -84,6 +84,51 @@ struct PreferencesModelTests {
         #expect(model.configurationError == nil)
     }
 
+    @Test("Adding an Anthropic provider preserves STT and selects it for cleanup")
+    func addingAnthropicProviderPersistsItsKeySeparately() throws {
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences()))
+        let secretStore = SecretStoreSpy()
+        let model = PreferencesModel(preferencesStore: preferencesStore, secretStore: secretStore)
+        model.addOpenAIProvider(apiKey: "openai-key")
+        let sttProviderID = model.preferences.selectedSTTProviderID
+
+        model.addAnthropicProvider(apiKey: "anthropic-key")
+
+        let entry = try #require(model.preferences.providerCatalog.last)
+        guard case .remote(let provider) = entry else {
+            Issue.record("Expected an Anthropic remote provider")
+            return
+        }
+        #expect(provider.kind == .anthropic)
+        #expect(provider.stt == nil)
+        #expect(provider.ttt?.format == .anthropicMessages)
+        #expect(model.preferences.selectedSTTProviderID == sttProviderID)
+        #expect(model.preferences.selectedTTTProviderID == .remote(provider.id))
+        #expect(model.preferences.cleanupEnabled)
+        #expect(secretStore.saved.last == [provider.id: "anthropic-key"])
+    }
+
+    @Test("An Anthropic keychain failure restores the previous cleanup selection")
+    func anthropicKeychainFailureRestoresConfiguration() {
+        var preferences = AppPreferences()
+        let openAI = RemoteProviderProfile.openAI()
+        preferences.providerCatalog = [.remote(openAI)]
+        preferences.selectedSTTProviderID = .remote(openAI.id)
+        preferences.selectedTTTProviderID = .remote(openAI.id)
+        preferences.cleanupEnabled = true
+        let model = PreferencesModel(
+            preferencesStore: PreferencesStoreSpy(loadResult: .loaded(preferences)),
+            secretStore: SecretStoreSpy(saveError: TestStoreError.saveFailed)
+        )
+
+        model.addAnthropicProvider(apiKey: "super-secret")
+
+        #expect(model.preferences.providerCatalog == [.remote(openAI)])
+        #expect(model.preferences.selectedTTTProviderID == .remote(openAI.id))
+        #expect(model.preferences.cleanupEnabled)
+        #expect(model.configurationError?.contains("super-secret") == false)
+    }
+
     @Test("A keychain failure rolls back provider configuration without exposing the key")
     func keychainFailureRollsBackProviderConfiguration() {
         let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences()))

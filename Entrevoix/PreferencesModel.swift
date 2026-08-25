@@ -78,6 +78,26 @@ final class PreferencesModel {
         persist()
     }
 
+    func addAnthropicProvider(apiKey: String) {
+        let previousTTTProviderID = preferences.selectedTTTProviderID
+        let previousCleanupEnabled = preferences.cleanupEnabled
+        var provider = RemoteProviderProfile.anthropic()
+        provider.name = "Anthropic"
+        preferences.providerCatalog.append(.remote(provider))
+        preferences.selectedTTTProviderID = .remote(provider.id)
+        preferences.cleanupEnabled = true
+
+        do {
+            try secretStore.save([provider.id: apiKey])
+            persist()
+        } catch {
+            preferences.providerCatalog.removeAll { $0.id == .remote(provider.id) }
+            preferences.selectedTTTProviderID = previousTTTProviderID
+            preferences.cleanupEnabled = previousCleanupEnabled
+            configurationError = "The API key could not be stored securely. \(error.localizedDescription)"
+        }
+    }
+
     func reset() {
         preferencesStore.reset()
         preferences = AppPreferences()
