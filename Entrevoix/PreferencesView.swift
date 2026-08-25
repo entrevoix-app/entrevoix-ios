@@ -173,7 +173,7 @@ private struct ProvidersSettingsView: View {
         Form {
             Section {
                 if model.preferences.providerCatalog.isEmpty {
-                    ContentUnavailableView("No provider configured", systemImage: "network", description: Text("Add an OpenAI provider for transcription, or Anthropic for text cleanup."))
+                    ContentUnavailableView("No provider configured", systemImage: "network", description: Text("Add OpenAI, OpenAI-compatible, or Anthropic providers."))
                     Button("Add provider") { isAddingProvider = true }
                 } else {
                     ForEach(model.preferences.providerCatalog) { provider in
@@ -325,6 +325,7 @@ private struct AddProviderView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: PreferencesModel
     @State private var apiKey = ""
+    @State private var baseURL = ""
     @State private var kind: ProviderKind = .openAI
 
     var body: some View {
@@ -337,8 +338,22 @@ private struct AddProviderView: View {
                         }
                     }
                 }
+                if kind == .openAICompatible {
+                    Section {
+                        TextField("Base URL", text: $baseURL)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    } header: {
+                        Text("Connection")
+                    } footer: {
+                        Text("Enter the provider address, for example https://api.example.com/v1.")
+                    }
+                }
                 Section {
-                    SecureField("API key", text: $apiKey).autocorrectionDisabled()
+                    SecureField("API key", text: $apiKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                 } footer: {
                     Text("The key is stored in the device Keychain; it is never written to Entrevoix preferences.")
                 }
@@ -348,13 +363,20 @@ private struct AddProviderView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
+                        let didAdd: Bool
                         switch kind {
-                        case .openAI: model.addOpenAIProvider(apiKey: apiKey)
-                        case .anthropic: model.addAnthropicProvider(apiKey: apiKey)
+                        case .openAI:
+                            didAdd = model.addOpenAIProvider(apiKey: apiKey)
+                        case .openAICompatible:
+                            didAdd = model.addOpenAICompatibleProvider(baseURL: baseURL, apiKey: apiKey)
+                        case .anthropic:
+                            didAdd = model.addAnthropicProvider(apiKey: apiKey)
                         }
-                        dismiss()
+                        if didAdd {
+                            dismiss()
+                        }
                     }
-                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (kind == .openAICompatible && baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
                 }
             }
         }
@@ -363,6 +385,7 @@ private struct AddProviderView: View {
 
 private enum ProviderKind: CaseIterable, Identifiable {
     case openAI
+    case openAICompatible
     case anthropic
 
     var id: Self { self }
@@ -370,6 +393,7 @@ private enum ProviderKind: CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .openAI: "OpenAI"
+        case .openAICompatible: "OpenAI-compatible"
         case .anthropic: "Anthropic"
         }
     }

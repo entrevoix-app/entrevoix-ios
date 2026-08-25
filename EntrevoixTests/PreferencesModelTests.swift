@@ -108,6 +108,50 @@ struct PreferencesModelTests {
         #expect(secretStore.saved.last == [provider.id: "anthropic-key"])
     }
 
+    @Test("Adding an OpenAI-compatible provider persists its address and key")
+    func addingOpenAICompatibleProviderPersistsAddressAndKey() throws {
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences()))
+        let secretStore = SecretStoreSpy()
+        let model = PreferencesModel(preferencesStore: preferencesStore, secretStore: secretStore)
+
+        let didAdd = model.addOpenAICompatibleProvider(
+            baseURL: " https://models.example.com/v1 ",
+            apiKey: "compatible-key"
+        )
+
+        let entry = try #require(model.preferences.providerCatalog.first)
+        guard case .remote(let provider) = entry else {
+            Issue.record("Expected an OpenAI-compatible remote provider")
+            return
+        }
+        #expect(didAdd)
+        #expect(provider.kind == .openAICompatible)
+        #expect(provider.baseURL == "https://models.example.com/v1")
+        #expect(provider.stt != nil)
+        #expect(provider.ttt == nil)
+        #expect(model.preferences.selectedSTTProviderID == .remote(provider.id))
+        #expect(model.preferences.selectedTTTProviderID == nil)
+        #expect(!model.preferences.cleanupEnabled)
+        #expect(secretStore.saved == [[provider.id: "compatible-key"]])
+        #expect(preferencesStore.saved.count == 1)
+    }
+
+    @Test("An invalid compatible provider address does not save configuration or its key")
+    func invalidOpenAICompatibleProviderAddressDoesNotPersist() {
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences()))
+        let secretStore = SecretStoreSpy()
+        let model = PreferencesModel(preferencesStore: preferencesStore, secretStore: secretStore)
+
+        let didAdd = model.addOpenAICompatibleProvider(baseURL: "ftp://models.example.com", apiKey: "super-secret")
+
+        #expect(!didAdd)
+        #expect(model.preferences.providerCatalog.isEmpty)
+        #expect(model.preferences.selectedSTTProviderID == nil)
+        #expect(secretStore.saved.isEmpty)
+        #expect(preferencesStore.saved.isEmpty)
+        #expect(model.configurationError?.contains("super-secret") == false)
+    }
+
     @Test("An Anthropic keychain failure restores the previous cleanup selection")
     func anthropicKeychainFailureRestoresConfiguration() {
         var preferences = AppPreferences()

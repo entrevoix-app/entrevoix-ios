@@ -4,7 +4,7 @@
     "Add a provider with text cleanup support to enable this option." : {
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez un fournisseur prenant en charge le nettoyage de texte pour activer cette option." } } }
     },
-    "Add an OpenAI provider for transcription, or Anthropic for text cleanup." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez un fournisseur OpenAI pour la transcription, ou Anthropic pour le nettoyage de texte." } } } },
+    "Add OpenAI, OpenAI-compatible, or Anthropic providers." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez des fournisseurs OpenAI, compatibles OpenAI ou Anthropic." } } } },
     "Add a transcription provider in Settings before starting your first dictation." : {
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez un fournisseur de transcription dans Réglages avant de commencer votre première dictée." } } }
     },
@@ -15,6 +15,7 @@
     "Add" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter" } } } },
     "Application" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Application" } } } },
     "API key" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Clé API" } } } },
+    "Base URL" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "URL de base" } } } },
     "Arabic" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Arabe" } } } },
     "Audio Input" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Entrée audio" } } } },
     "Automatic" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Automatique" } } } },
@@ -25,6 +26,9 @@
     "Clipboard" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Presse-papiers" } } } },
     "Configuration error" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Erreur de configuration" } } } },
     "Configure a provider" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Configurer un fournisseur" } } } },
+    "Connection" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Connexion" } } } },
+    "Enter a valid http:// or https:// URL." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Saisissez une URL http:// ou https:// valide." } } } },
+    "Enter the provider address, for example https://api.example.com/v1." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Saisissez l’adresse du fournisseur, par exemple https://api.example.com/v1." } } } },
     "Create workflows in Entrevoix for Mac to combine saved prompts." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Créez des flux de travail dans Entrevoix pour Mac afin de combiner des invites enregistrées." } } } },
     "Customization" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Personnalisation" } } } },
     "Delivery" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Envoi" } } } },
