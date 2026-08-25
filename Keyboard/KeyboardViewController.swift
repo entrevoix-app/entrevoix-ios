@@ -31,7 +31,8 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func configureView() {
-        view.backgroundColor = .secondarySystemBackground
+        view.backgroundColor = .clear
+        view.isOpaque = false
 
         statusLabel.font = .preferredFont(forTextStyle: .footnote)
         statusLabel.textColor = .secondaryLabel
