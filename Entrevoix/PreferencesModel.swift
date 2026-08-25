@@ -63,6 +63,21 @@ final class PreferencesModel {
         }
     }
 
+    @discardableResult
+    func addDictionaryTerm(_ rawTerm: String) -> Bool {
+        guard let term = AppPreferences.normalizedDictationDictionary([rawTerm]).first,
+              !preferences.dictationDictionary.contains(term) else { return false }
+
+        preferences.dictationDictionary.append(term)
+        persist()
+        return true
+    }
+
+    func removeDictionaryTerms(at offsets: IndexSet) {
+        preferences.dictationDictionary.remove(atOffsets: offsets)
+        persist()
+    }
+
     func reset() {
         preferencesStore.reset()
         preferences = AppPreferences()

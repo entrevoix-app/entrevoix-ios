@@ -3,18 +3,23 @@ import SwiftUI
 
 struct RootView: View {
     @Bindable var model: PreferencesModel
+    @State private var selectedTab: RootTab = .dictation
 
     var body: some View {
-        TabView {
-            DictationHomeView(model: model)
-                .tabItem {
-                    Label("Dictation", systemImage: "mic.fill")
-                }
+        TabView(selection: $selectedTab) {
+            DictationHomeView(model: model) {
+                selectedTab = .settings
+            }
+            .tabItem {
+                Label("Dictation", systemImage: "mic.fill")
+            }
+            .tag(RootTab.dictation)
 
             PreferencesView(model: model)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
+                .tag(RootTab.settings)
         }
         .alert("Settings restored", isPresented: recoveryAlert) {
             Button("OK", role: .cancel) {}
@@ -47,8 +52,14 @@ struct RootView: View {
     }
 }
 
+private enum RootTab: Hashable {
+    case dictation
+    case settings
+}
+
 private struct DictationHomeView: View {
     @Bindable var model: PreferencesModel
+    let showSettings: () -> Void
 
     var body: some View {
         NavigationStack {
@@ -66,9 +77,7 @@ private struct DictationHomeView: View {
                 }
 
                 if model.preferences.selectedSTTProviderID == nil {
-                    NavigationLink {
-                        PreferencesView(model: model)
-                    } label: {
+                    Button(action: showSettings) {
                         Label("Configure a provider", systemImage: "gearshape")
                     }
                     .buttonStyle(.borderedProminent)
