@@ -26,11 +26,12 @@ private struct KeyboardDictationView: View {
 
             Button(action: { model.requestDictation?() }) {
                 Image(systemName: "mic.fill")
-                    .font(.system(size: 28, weight: .medium))
-                    .frame(width: 64, height: 64)
+                    .font(.system(size: 32, weight: .medium))
+                    .frame(width: 80, height: 80)
             }
             .buttonStyle(.borderedProminent)
             .buttonBorderShape(.circle)
+            .padding(.top, 16)
             .accessibilityLabel("Start dictation")
             .accessibilityHint("Requests dictation from the Entrevoix app")
 
@@ -65,6 +66,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        hasDictationKey = true
         configureView()
     }
 
