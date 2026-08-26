@@ -386,6 +386,7 @@
 		A01B2C3D4E5F607182931301 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = Entrevoix;
 				CODE_SIGN_ENTITLEMENTS = Entrevoix/Entrevoix.Debug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -414,6 +415,7 @@
 		A01B2C3D4E5F607182931302 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = Entrevoix;
 				CODE_SIGN_ENTITLEMENTS = Entrevoix/Entrevoix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

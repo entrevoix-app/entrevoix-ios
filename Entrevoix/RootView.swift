@@ -101,9 +101,9 @@ private struct DictationHomeView: View {
 
     private var statusMessage: String {
         if model.preferences.selectedSTTProviderID == nil {
-            return "Add a transcription provider in Settings before starting your first dictation."
+            return String(localized: "Add a transcription provider in Settings before starting your first dictation.")
         }
-        return "Your iOS recording controls will appear here."
+        return String(localized: "Your iOS recording controls will appear here.")
     }
 }
 
