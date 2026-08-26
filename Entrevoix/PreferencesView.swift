@@ -193,6 +193,17 @@ private struct TranscriptionSettingsView: View {
     var body: some View {
         Form {
             Section {
+                Picker("Provider", selection: model.binding(for: \.selectedSTTProviderID)) {
+                    if transcriptionProviders.isEmpty {
+                        Text("No provider configured").tag(ProviderIdentifier?.none)
+                    } else {
+                        ForEach(transcriptionProviders) { provider in
+                            Text(provider.displayName).tag(provider.id as ProviderIdentifier?)
+                        }
+                    }
+                }
+                .disabled(transcriptionProviders.isEmpty)
+
                 Picker("Language", selection: model.binding(for: \.sttLanguage)) {
                     ForEach(TranscriptionLanguage.allCases) { language in Text(language.displayName).tag(language) }
                 }
@@ -200,6 +211,10 @@ private struct TranscriptionSettingsView: View {
                 Text("Choose the language Entrevoix uses for transcription.")
             }
         }
+    }
+
+    private var transcriptionProviders: [ProviderCatalogEntry] {
+        model.preferences.providerCatalog.filter(\.supportsSTT)
     }
 }
 
