@@ -6,7 +6,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld invites"
+            "value" : "%lld prompts"
           }
         }
       }
@@ -78,7 +78,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajouter une invite"
+            "value" : "Ajouter un prompt"
           }
         }
       }
@@ -88,7 +88,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une invite porte déjà ce nom."
+            "value" : "Un prompt porte déjà ce nom."
           }
         }
       }
@@ -270,7 +270,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Créez des flux de travail dans Entrevoix pour Mac afin de combiner des invites enregistrées."
+            "value" : "Créez des workflows dans Entrevoix pour Mac afin de combiner des prompts enregistrés."
           }
         }
       }
@@ -366,7 +366,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Modifier l’invite"
+            "value" : "Modifier le prompt"
           }
         }
       }
@@ -418,7 +418,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saisissez un nom d’invite."
+            "value" : "Saisissez un nom de prompt."
           }
         }
       }
@@ -428,7 +428,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saisissez les instructions de l’invite."
+            "value" : "Saisissez les instructions du prompt."
           }
         }
       }
@@ -586,7 +586,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nouvelle invite"
+            "value" : "Nouveau prompt"
           }
         }
       }
@@ -608,7 +608,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aucune invite enregistrée"
+            "value" : "Aucun prompt enregistré"
           }
         }
       }
@@ -628,7 +628,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aucun flux de travail"
+            "value" : "Aucun workflow"
           }
         }
       }
@@ -700,7 +700,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invite"
+            "value" : "Prompt"
           }
         }
       }
@@ -711,7 +711,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La modification des invites est gérée dans Entrevoix pour Mac. Les invites enregistrées restent disponibles pour le nettoyage sur iOS."
+            "value" : "La modification des prompts est gérée dans Entrevoix pour Mac. Les prompts enregistrés restent disponibles pour le nettoyage sur iOS."
           }
         }
       }
@@ -721,7 +721,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invites"
+            "value" : "Prompts"
           }
         }
       }
@@ -733,7 +733,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les invites se synchronisent automatiquement avec Entrevoix pour Mac."
+            "value" : "Les prompts se synchronisent automatiquement avec Entrevoix pour Mac."
           }
         }
       }
@@ -837,7 +837,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invite de nettoyage sélectionnée"
+            "value" : "Prompt de nettoyage sélectionné"
           }
         }
       }
@@ -959,7 +959,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cette action supprime aussi l’invite des flux de travail enregistrés."
+            "value" : "Cette action supprime aussi le prompt des workflows enregistrés."
           }
         }
       }
@@ -1063,7 +1063,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Flux de travail"
+            "value" : "Workflows"
           }
         }
       }
