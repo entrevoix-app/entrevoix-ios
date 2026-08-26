@@ -892,12 +892,12 @@
         }
       }
     },
-    "STT Transcription" : {
+    "Transcription" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transcription STT"
+            "value" : "Transcription"
           }
         }
       }
@@ -984,12 +984,12 @@
         }
       }
     },
-    "TTT Cleanup" : {
+    "Cleanup" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nettoyage TTT"
+            "value" : "Nettoyage"
           }
         }
       }

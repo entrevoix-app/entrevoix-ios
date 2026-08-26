@@ -38,8 +38,8 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .general: String(localized: "General")
         case .providers: String(localized: "Providers")
-        case .transcription: String(localized: "STT Transcription")
-        case .cleanup: String(localized: "TTT Cleanup")
+        case .transcription: String(localized: "Transcription")
+        case .cleanup: String(localized: "Cleanup")
         case .dictationDictionary: String(localized: "Dictation Dictionary")
         case .prompts: String(localized: "Prompts")
         case .workflows: String(localized: "Workflows")
