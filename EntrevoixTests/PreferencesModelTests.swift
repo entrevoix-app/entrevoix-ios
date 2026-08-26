@@ -237,6 +237,135 @@ struct PreferencesModelTests {
         #expect(model.preferences.activeCleanupSelection == .prompt(AppPreferences.defaultCleanupPromptID))
         #expect(store.saved.count >= 3)
     }
+
+    @Test("Cloud bootstrap applies the remote prompt library", .timeLimit(.minutes(1)))
+    func cloudBootstrapAppliesRemotePromptLibrary() async {
+        let id = UUID()
+        let localPrompt = CleanupPrompt(id: id, name: "Local", systemImageName: "sparkles", instructions: "Local text")
+        let remotePrompt = CleanupPrompt(id: id, name: "Remote", systemImageName: "quote.bubble", instructions: "Remote text")
+        let remoteWorkflow = CleanupWorkflow(name: "Remote workflow", promptIDs: [id])
+        let remoteLibrary = CleanupLibrary(prompts: [remotePrompt], workflows: [remoteWorkflow])
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences(
+            cleanupPrompts: [localPrompt],
+            activeCleanupSelection: .prompt(id)
+        )))
+        let cloudStore = CleanupLibraryCloudStoreSpy(bootstrapResult: .success(remoteLibrary))
+        let model = PreferencesModel(
+            preferencesStore: preferencesStore,
+            secretStore: SecretStoreSpy(),
+            cleanupLibraryCloudStore: cloudStore
+        )
+
+        await cloudStore.waitForBootstrap()
+
+        #expect(cloudStore.subscriptionIDs == [CleanupLibraryCloudSync.subscriptionID])
+        #expect(model.preferences.cleanupPrompts == [remotePrompt])
+        #expect(model.preferences.cleanupWorkflows == [remoteWorkflow])
+        #expect(model.preferences.cleanupPrompt == remotePrompt.instructions)
+        #expect(preferencesStore.saved.last?.cleanupPrompts == [remotePrompt])
+    }
+
+    @Test("Adding and editing prompts publish the full CloudKit library", .timeLimit(.minutes(1)))
+    func savingPromptsPublishesCloudLibrary() async {
+        let original = CleanupPrompt(name: "Original", systemImageName: "sparkles", instructions: "Original text")
+        let initialLibrary = CleanupLibrary(prompts: [original], workflows: [])
+        let cloudStore = CleanupLibraryCloudStoreSpy(bootstrapResult: .success(initialLibrary))
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences(
+            cleanupPrompts: [original],
+            activeCleanupSelection: .prompt(original.id)
+        )))
+        let model = PreferencesModel(
+            preferencesStore: preferencesStore,
+            secretStore: SecretStoreSpy(),
+            cleanupLibraryCloudStore: cloudStore
+        )
+        await cloudStore.waitForBootstrap()
+
+        let added = CleanupPrompt(name: "Added", systemImageName: "doc.text", instructions: "Added text")
+        #expect(model.saveCleanupPrompt(added) == nil)
+        await cloudStore.waitForSavedLibraries(count: 1)
+
+        #expect(cloudStore.savedLibraries[0].prompts == [original, added])
+        #expect(cloudStore.replacedLibraries[0] == initialLibrary)
+
+        let edited = CleanupPrompt(
+            id: added.id,
+            name: "Edited",
+            systemImageName: "quote.bubble",
+            instructions: "Edited text"
+        )
+        #expect(model.saveCleanupPrompt(edited) == nil)
+        await cloudStore.waitForSavedLibraries(count: 2)
+
+        #expect(model.preferences.cleanupPrompts == [original, edited])
+        #expect(preferencesStore.saved.last?.cleanupPrompts == [original, edited])
+        #expect(cloudStore.savedLibraries[1].prompts == [original, edited])
+        #expect(cloudStore.replacedLibraries[1]?.prompts == [original, added])
+    }
+
+    @Test("Refreshing applies remote changes without republishing them", .timeLimit(.minutes(1)))
+    func refreshAppliesRemotePromptLibraryWithoutRepublishing() async {
+        let id = UUID()
+        let initialPrompt = CleanupPrompt(id: id, name: "Initial", systemImageName: "sparkles", instructions: "Initial text")
+        let refreshedPrompt = CleanupPrompt(id: id, name: "Refreshed", systemImageName: "quote.bubble", instructions: "Refreshed text")
+        let initialLibrary = CleanupLibrary(prompts: [initialPrompt], workflows: [])
+        let refreshedLibrary = CleanupLibrary(prompts: [refreshedPrompt], workflows: [])
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences(
+            cleanupPrompts: [initialPrompt],
+            activeCleanupSelection: .prompt(id)
+        )))
+        let cloudStore = CleanupLibraryCloudStoreSpy(
+            bootstrapResult: .success(initialLibrary),
+            fetchResult: .success(refreshedLibrary)
+        )
+        let model = PreferencesModel(
+            preferencesStore: preferencesStore,
+            secretStore: SecretStoreSpy(),
+            cleanupLibraryCloudStore: cloudStore
+        )
+        await cloudStore.waitForBootstrap()
+
+        model.refreshCleanupLibrary()
+        await cloudStore.waitForFetches(count: 1)
+
+        #expect(model.preferences.cleanupPrompts == [refreshedPrompt])
+        #expect(model.preferences.cleanupPrompt == refreshedPrompt.instructions)
+        #expect(preferencesStore.saved.last?.cleanupPrompts == [refreshedPrompt])
+        #expect(cloudStore.savedLibraries.isEmpty)
+    }
+
+    @Test("CloudKit publication failures keep prompt edits stored locally", .timeLimit(.minutes(1)))
+    func cloudPublicationFailureKeepsPromptEditsLocally() async {
+        let original = CleanupPrompt(name: "Original", systemImageName: "sparkles", instructions: "Original text")
+        let initialLibrary = CleanupLibrary(prompts: [original], workflows: [])
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences(
+            cleanupPrompts: [original],
+            activeCleanupSelection: .prompt(original.id)
+        )))
+        let cloudStore = CleanupLibraryCloudStoreSpy(
+            bootstrapResult: .success(initialLibrary),
+            saveResult: .failure(TestStoreError.saveFailed)
+        )
+        let model = PreferencesModel(
+            preferencesStore: preferencesStore,
+            secretStore: SecretStoreSpy(),
+            cleanupLibraryCloudStore: cloudStore
+        )
+        await cloudStore.waitForBootstrap()
+
+        let edited = CleanupPrompt(
+            id: original.id,
+            name: "Edited",
+            systemImageName: "quote.bubble",
+            instructions: "Edited text"
+        )
+        #expect(model.saveCleanupPrompt(edited) == nil)
+        await cloudStore.waitForSavedLibraries(count: 1)
+
+        #expect(model.preferences.cleanupPrompts == [edited])
+        #expect(model.preferences.cleanupPrompt == edited.instructions)
+        #expect(preferencesStore.saved.last?.cleanupPrompts == [edited])
+    }
 }
 
 private final class PreferencesStoreSpy: PreferencesStoring {
@@ -278,6 +407,76 @@ private final class SecretStoreSpy: SecretStoring {
             throw saveError
         }
         saved.append(secrets)
+    }
+}
+
+@MainActor
+private final class CleanupLibraryCloudStoreSpy: CleanupLibraryCloudStoring {
+    private let bootstrapResult: Result<CleanupLibrary, any Error>
+    private let fetchResult: Result<CleanupLibrary?, any Error>
+    private let saveResult: Result<Void, any Error>
+
+    private(set) var subscriptionIDs: [String] = []
+    private(set) var savedLibraries: [CleanupLibrary] = []
+    private(set) var replacedLibraries: [CleanupLibrary?] = []
+    private var bootstrapWaiters: [CheckedContinuation<Void, Never>] = []
+    private var fetchWaiters: [CheckedContinuation<Void, Never>] = []
+    private var saveWaiters: [CheckedContinuation<Void, Never>] = []
+    private var didBootstrap = false
+    private var fetchCount = 0
+
+    init(
+        bootstrapResult: Result<CleanupLibrary, any Error>,
+        fetchResult: Result<CleanupLibrary?, any Error> = .success(nil),
+        saveResult: Result<Void, any Error> = .success(())
+    ) {
+        self.bootstrapResult = bootstrapResult
+        self.fetchResult = fetchResult
+        self.saveResult = saveResult
+    }
+
+    func bootstrap(localLibrary _: CleanupLibrary, seedLocalLibrary _: Bool) async throws -> CleanupLibrary {
+        didBootstrap = true
+        resume(&bootstrapWaiters)
+        return try bootstrapResult.get()
+    }
+
+    func fetchLibrary() async throws -> CleanupLibrary? {
+        fetchCount += 1
+        resume(&fetchWaiters)
+        return try fetchResult.get()
+    }
+
+    func saveLibrary(_ library: CleanupLibrary, replacing previousLibrary: CleanupLibrary?) async throws {
+        savedLibraries.append(library)
+        replacedLibraries.append(previousLibrary)
+        resume(&saveWaiters)
+        try saveResult.get()
+    }
+
+    func ensureSubscription(id: String) async throws {
+        subscriptionIDs.append(id)
+    }
+
+    func waitForBootstrap() async {
+        guard !didBootstrap else { return }
+        await withCheckedContinuation { bootstrapWaiters.append($0) }
+    }
+
+    func waitForFetches(count: Int) async {
+        guard fetchCount < count else { return }
+        await withCheckedContinuation { fetchWaiters.append($0) }
+    }
+
+    func waitForSavedLibraries(count: Int) async {
+        guard savedLibraries.count < count else { return }
+        await withCheckedContinuation { saveWaiters.append($0) }
+    }
+
+    private func resume(_ waiters: inout [CheckedContinuation<Void, Never>]) {
+        let waiting = waiters
+        waiters.removeAll()
+        waiting.forEach { $0.resume() }
     }
 }
 
