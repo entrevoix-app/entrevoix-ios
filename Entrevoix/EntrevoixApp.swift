@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct EntrevoixApp: App {
+    @UIApplicationDelegateAdaptor(EntrevoixAppDelegate.self) private var appDelegate
     @State private var preferences: PreferencesModel
 
     init() {

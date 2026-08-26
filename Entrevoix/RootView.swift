@@ -1,9 +1,11 @@
 import EntrevoixCore
 import SwiftUI
+import Combine
 
 struct RootView: View {
     @Bindable var model: PreferencesModel
     @State private var selectedTab: RootTab = .dictation
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -30,6 +32,12 @@ struct RootView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(model.configurationError ?? "")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .cleanupLibraryCloudChange)) { _ in
+            model.refreshCleanupLibrary()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { model.refreshCleanupLibrary() }
         }
     }
 

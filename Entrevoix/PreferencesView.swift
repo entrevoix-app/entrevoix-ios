@@ -249,23 +249,172 @@ private struct DictationDictionarySettingsView: View {
 
 private struct PromptLibrarySettingsView: View {
     @Bindable var model: PreferencesModel
+    @State private var draft: CleanupPrompt?
+    @State private var promptPendingDeletion: CleanupPrompt?
+    @State private var showsResetConfirmation = false
 
     var body: some View {
         List {
-            Section {
+            if model.preferences.cleanupPrompts.isEmpty {
+                ContentUnavailableView(
+                    "No prompts saved",
+                    systemImage: "text.badge.checkmark",
+                    description: Text("Create reusable instructions to refine your dictations.")
+                )
+            } else {
+                Section {
                 ForEach(model.preferences.cleanupPrompts) { prompt in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label(prompt.name, systemImage: prompt.systemImageName)
-                        Text(prompt.instructions)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
+                    HStack(spacing: 12) {
+                        Button { draft = prompt } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Label(prompt.name, systemImage: prompt.systemImageName)
+                                    .foregroundStyle(.primary)
+                                Text(prompt.instructions)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer(minLength: 0)
+
+                        Button {
+                            model.setActiveCleanupPrompt(prompt.id)
+                        } label: {
+                            Image(systemName: isActive(prompt) ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(isActive(prompt) ? Color.accentColor : Color.secondary)
+                                .frame(minWidth: 44, minHeight: 44)
+                        }
+                        .accessibilityLabel(isActive(prompt) ? "Selected cleanup prompt" : "Use \(prompt.name) for cleanup")
                     }
                     .padding(.vertical, 2)
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            promptPendingDeletion = prompt
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
-            } footer: {
-                Text("Prompt editing is managed on Entrevoix for Mac. Saved prompts remain available for iOS cleanup.")
+                } footer: {
+                    Text("Prompts sync automatically with Entrevoix for Mac.")
+                }
             }
+
+            Section {
+                Button("Reset list", systemImage: "arrow.counterclockwise", role: .destructive) {
+                    showsResetConfirmation = true
+                }
+            }
+        }
+        .toolbar {
+            Button {
+                draft = CleanupPrompt(name: "", systemImageName: "sparkles", instructions: "")
+            } label: {
+                Label("Add prompt", systemImage: "plus")
+            }
+        }
+        .sheet(item: $draft) { prompt in
+            PromptEditorView(model: model, initialPrompt: prompt)
+        }
+        .confirmationDialog(
+            "Delete \(promptPendingDeletion?.name ?? "prompt")?",
+            isPresented: Binding(
+                get: { promptPendingDeletion != nil },
+                set: { if !$0 { promptPendingDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let promptPendingDeletion { model.deleteCleanupPrompt(id: promptPendingDeletion.id) }
+                promptPendingDeletion = nil
+            }
+        } message: {
+            Text("This also removes the prompt from saved workflows.")
+        }
+        .confirmationDialog("Reset prompt list?", isPresented: $showsResetConfirmation, titleVisibility: .visible) {
+            Button("Reset list", role: .destructive) { model.resetPromptLibrary() }
+        } message: {
+            Text("This replaces your prompts with the standard prompt and clears workflow references.")
+        }
+    }
+
+    private func isActive(_ prompt: CleanupPrompt) -> Bool {
+        model.preferences.activeCleanupSelection == .prompt(prompt.id)
+    }
+}
+
+private struct PromptEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Bindable var model: PreferencesModel
+    @State private var prompt: CleanupPrompt
+    @State private var validationError: CleanupPromptValidationError?
+
+    init(model: PreferencesModel, initialPrompt: CleanupPrompt) {
+        self.model = model
+        _prompt = State(initialValue: initialPrompt)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Prompt") {
+                    TextField("Name", text: $prompt.name)
+                        .textInputAutocapitalization(.words)
+                    Picker("Icon", selection: $prompt.systemImageName) {
+                        ForEach(CleanupPrompt.allowedSystemImageNames, id: \.self) { icon in
+                            Label(icon, systemImage: icon).tag(icon)
+                        }
+                    }
+                }
+                Section("Instructions") {
+                    TextEditor(text: $prompt.instructions)
+                        .frame(minHeight: 160)
+                        .textInputAutocapitalization(.sentences)
+                }
+                if let validationError {
+                    Section {
+                        Text(validationError.message)
+                            .foregroundStyle(.red)
+                    }
+                }
+                Section {
+                    Button("Use for cleanup") {
+                        guard save() else { return }
+                        model.setActiveCleanupPrompt(prompt.id)
+                        dismiss()
+                    }
+                }
+            }
+            .navigationTitle(prompt.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "New prompt" : "Edit prompt")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        if save() { dismiss() }
+                    }
+                    .disabled(prompt.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || prompt.instructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+
+    private func save() -> Bool {
+        validationError = model.saveCleanupPrompt(prompt)
+        return validationError == nil
+    }
+}
+
+private extension CleanupPromptValidationError {
+    var message: String {
+        switch self {
+        case .emptyName: "Enter a prompt name."
+        case .duplicateName: "A prompt already uses this name."
+        case .emptyInstructions: "Enter prompt instructions."
+        case .invalidIcon: "Choose a supported icon."
         }
     }
 }
