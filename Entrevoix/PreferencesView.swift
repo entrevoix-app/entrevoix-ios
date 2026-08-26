@@ -205,7 +205,7 @@ private struct TranscriptionSettingsView: View {
                 .disabled(transcriptionProviders.isEmpty)
 
                 Picker("Language", selection: model.binding(for: \.sttLanguage)) {
-                    ForEach(TranscriptionLanguage.allCases) { language in Text(language.displayName).tag(language) }
+                    ForEach(transcriptionLanguages) { language in Text(language.displayName).tag(language) }
                 }
             } footer: {
                 Text("Choose the language Entrevoix uses for transcription.")
@@ -215,6 +215,12 @@ private struct TranscriptionSettingsView: View {
 
     private var transcriptionProviders: [ProviderCatalogEntry] {
         model.preferences.providerCatalog.filter(\.supportsSTT)
+    }
+
+    private var transcriptionLanguages: [TranscriptionLanguage] {
+        TranscriptionLanguage.allCases.sorted {
+            $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending
+        }
     }
 }
 
