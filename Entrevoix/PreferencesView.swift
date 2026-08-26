@@ -266,13 +266,18 @@ private struct PromptLibrarySettingsView: View {
                 ForEach(model.preferences.cleanupPrompts) { prompt in
                     HStack(spacing: 12) {
                         Button { draft = prompt } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Label(prompt.name, systemImage: prompt.systemImageName)
-                                    .foregroundStyle(.primary)
-                                Text(prompt.instructions)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: prompt.systemImageName)
+                                    .frame(width: 20)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(prompt.name)
+                                        .foregroundStyle(.primary)
+                                    Text(prompt.instructions)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
                             }
                         }
                         .buttonStyle(.plain)
