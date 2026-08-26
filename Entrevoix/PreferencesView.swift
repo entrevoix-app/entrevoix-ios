@@ -36,13 +36,13 @@ private enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
 
     var title: String {
         switch self {
-        case .general: "General"
-        case .providers: "Providers"
-        case .transcription: "STT Transcription"
-        case .cleanup: "TTT Cleanup"
-        case .dictationDictionary: "Dictation Dictionary"
-        case .prompts: "Prompts"
-        case .workflows: "Workflows"
+        case .general: String(localized: "General")
+        case .providers: String(localized: "Providers")
+        case .transcription: String(localized: "STT Transcription")
+        case .cleanup: String(localized: "TTT Cleanup")
+        case .dictationDictionary: String(localized: "Dictation Dictionary")
+        case .prompts: String(localized: "Prompts")
+        case .workflows: String(localized: "Workflows")
         }
     }
 
@@ -251,7 +251,6 @@ private struct PromptLibrarySettingsView: View {
     @Bindable var model: PreferencesModel
     @State private var draft: CleanupPrompt?
     @State private var promptPendingDeletion: CleanupPrompt?
-    @State private var showsResetConfirmation = false
 
     var body: some View {
         List {
@@ -307,11 +306,6 @@ private struct PromptLibrarySettingsView: View {
                 }
             }
 
-            Section {
-                Button("Reset list", systemImage: "arrow.counterclockwise", role: .destructive) {
-                    showsResetConfirmation = true
-                }
-            }
         }
         .toolbar {
             Button {
@@ -337,11 +331,6 @@ private struct PromptLibrarySettingsView: View {
             }
         } message: {
             Text("This also removes the prompt from saved workflows.")
-        }
-        .confirmationDialog("Reset prompt list?", isPresented: $showsResetConfirmation, titleVisibility: .visible) {
-            Button("Reset list", role: .destructive) { model.resetPromptLibrary() }
-        } message: {
-            Text("This replaces your prompts with the standard prompt and clears workflow references.")
         }
     }
 
@@ -416,10 +405,10 @@ private struct PromptEditorView: View {
 private extension CleanupPromptValidationError {
     var message: String {
         switch self {
-        case .emptyName: "Enter a prompt name."
-        case .duplicateName: "A prompt already uses this name."
-        case .emptyInstructions: "Enter prompt instructions."
-        case .invalidIcon: "Choose a supported icon."
+        case .emptyName: String(localized: "Enter a prompt name.")
+        case .duplicateName: String(localized: "A prompt already uses this name.")
+        case .emptyInstructions: String(localized: "Enter prompt instructions.")
+        case .invalidIcon: String(localized: "Choose a supported icon.")
         }
     }
 }

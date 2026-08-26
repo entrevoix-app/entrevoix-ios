@@ -1,92 +1,1095 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld prompts" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld invites"
+          }
+        }
+      }
+    },
+    "Add" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter"
+          }
+        }
+      }
+    },
     "Add a provider with text cleanup support to enable this option." : {
-      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez un fournisseur prenant en charge le nettoyage de texte pour activer cette option." } } }
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez un fournisseur prenant en charge le nettoyage de texte pour activer cette option."
+          }
+        }
+      }
     },
-    "Add OpenAI, OpenAI-compatible, or Anthropic providers." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez des fournisseurs OpenAI, compatibles OpenAI ou Anthropic." } } } },
     "Add a transcription provider in Settings before starting your first dictation." : {
-      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez un fournisseur de transcription dans Réglages avant de commencer votre première dictée." } } }
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez un fournisseur de transcription dans Réglages avant de commencer votre première dictée."
+          }
+        }
+      }
     },
-    "Add another provider" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter un autre fournisseur" } } } },
-    "Add names and terms that Entrevoix should recognize." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajoutez les noms et termes qu’Entrevoix doit reconnaître." } } } },
-    "Add provider" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter un fournisseur" } } } },
-    "Add term" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter un terme" } } } },
-    "Add" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter" } } } },
-    "Application" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Application" } } } },
-    "API key" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Clé API" } } } },
-    "Base URL" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "URL de base" } } } },
-    "Arabic" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Arabe" } } } },
-    "Audio Input" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Entrée audio" } } } },
-    "Automatic" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Automatique" } } } },
-    "Cancel" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Annuler" } } } },
-    "Chinese" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Chinois" } } } },
-    "Choose a different, non-empty term." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisissez un terme différent et non vide." } } } },
-    "Choose the language Entrevoix uses for transcription." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisissez la langue utilisée par Entrevoix pour la transcription." } } } },
-    "Clipboard" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Presse-papiers" } } } },
-    "Configuration error" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Erreur de configuration" } } } },
-    "Configure a provider" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Configurer un fournisseur" } } } },
-    "Connection" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Connexion" } } } },
-    "Enter a valid http:// or https:// URL." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Saisissez une URL http:// ou https:// valide." } } } },
-    "Enter the provider address, for example https://api.example.com/v1." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Saisissez l’adresse du fournisseur, par exemple https://api.example.com/v1." } } } },
-    "Create workflows in Entrevoix for Mac to combine saved prompts." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Créez des flux de travail dans Entrevoix pour Mac afin de combiner des invites enregistrées." } } } },
-    "Customization" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Personnalisation" } } } },
-    "Delivery" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Envoi" } } } },
-    "Dictation Dictionary" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dictionnaire de dictée" } } } },
-    "Dictation" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dictée" } } } },
-    "Dutch" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Néerlandais" } } } },
-    "English" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Anglais" } } } },
-    "French" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Français" } } } },
-    "General" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Général" } } } },
-    "German" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Allemand" } } } },
-    "Hindi" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Hindi" } } } },
-    "If cleanup fails" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Si le nettoyage échoue" } } } },
-    "Improve transcript after dictation" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Améliorer la transcription après la dictée" } } } },
-    "Indonesian" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Indonésien" } } } },
-    "Italian" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Italien" } } } },
-    "Japanese" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Japonais" } } } },
-    "Korean" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Coréen" } } } },
-    "Language" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Langue" } } } },
-    "No dictionary terms" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun terme dans le dictionnaire" } } } },
-    "No provider configured" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun fournisseur configuré" } } } },
-    "No workflows" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun flux de travail" } } } },
-    "OK" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "OK" } } } },
-    "Paste into active text field" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Coller dans le champ de texte actif" } } } },
-    "Play feedback sounds" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Émettre des sons de confirmation" } } } },
-    "Polish" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Polonais" } } } },
-    "Processing" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Traitement" } } } },
-    "Prompt editing is managed on Entrevoix for Mac. Saved prompts remain available for iOS cleanup." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "La modification des invites est gérée dans Entrevoix pour Mac. Les invites enregistrées restent disponibles pour le nettoyage sur iOS." } } } },
-    "Prompts" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Invites" } } } },
-    "Provider" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fournisseur" } } } },
-    "Providers" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fournisseurs" } } } },
-    "Portuguese" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Portugais" } } } },
-    "Ready when you are" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prêt quand vous l’êtes" } } } },
-    "Reduce long internal pauses" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réduire les longues pauses internes" } } } },
-    "Reset all settings?" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réinitialiser tous les réglages ?" } } } },
-    "Reset settings" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réinitialiser les réglages" } } } },
-    "Russian" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Russe" } } } },
-    "schema" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "schéma" } } } },
-    "STT Transcription" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Transcription STT" } } } },
-    "Send result to" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Envoyer le résultat vers" } } } },
-    "Settings restored" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages restaurés" } } } },
-    "Settings" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } } } },
-    "Spanish" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Espagnol" } } } },
-    "Stop and show an error" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Arrêter et afficher une erreur" } } } },
-    "TTT Cleanup" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nettoyage TTT" } } } },
-    "Term already exists" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Le terme existe déjà" } } } },
-    "Term" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Terme" } } } },
-    "The API key could not be stored securely." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "La clé API n’a pas pu être stockée de manière sécurisée." } } } },
-    "The key is stored in the device Keychain; it is never written to Entrevoix preferences." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "La clé est stockée dans le trousseau de l’appareil ; elle n’est jamais écrite dans les préférences d’Entrevoix." } } } },
-    "These settings were created by a newer version of Entrevoix." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ces réglages ont été créés par une version plus récente d’Entrevoix." } } } },
-    "This removes Entrevoix preferences from this device. API keys remain protected in your Keychain." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Cette action supprime les préférences d’Entrevoix de cet appareil. Les clés API restent protégées dans votre trousseau." } } } },
-    "Trim leading and trailing silence" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer le silence au début et à la fin" } } } },
-    "Turkish" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Turc" } } } },
-    "Ukrainian" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ukrainien" } } } },
-    "Use the original transcript" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Utiliser la transcription d’origine" } } } },
-    "Vietnamese" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vietnamien" } } } },
-    "Workflows" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Flux de travail" } } } },
-    "Your iOS recording controls will appear here." : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vos commandes d’enregistrement iOS apparaîtront ici." } } } },
-    "%lld prompts" : { "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld invites" } } } }
+    "Add another provider" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter un autre fournisseur"
+          }
+        }
+      }
+    },
+    "Add names and terms that Entrevoix should recognize." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez les noms et termes qu’Entrevoix doit reconnaître."
+          }
+        }
+      }
+    },
+    "Add OpenAI, OpenAI-compatible, or Anthropic providers." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez des fournisseurs OpenAI, compatibles OpenAI ou Anthropic."
+          }
+        }
+      }
+    },
+    "Add prompt" : {
+      "comment" : "A button that adds a new prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter une invite"
+          }
+        }
+      }
+    },
+    "A prompt already uses this name." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une invite porte déjà ce nom."
+          }
+        }
+      }
+    },
+    "Add provider" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter un fournisseur"
+          }
+        }
+      }
+    },
+    "Add term" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter un terme"
+          }
+        }
+      }
+    },
+    "API key" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé API"
+          }
+        }
+      }
+    },
+    "Application" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application"
+          }
+        }
+      }
+    },
+    "Arabic" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arabe"
+          }
+        }
+      }
+    },
+    "Audio Input" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrée audio"
+          }
+        }
+      }
+    },
+    "Automatic" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatique"
+          }
+        }
+      }
+    },
+    "Base URL" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL de base"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
+        }
+      }
+    },
+    "Chinese" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chinois"
+          }
+        }
+      }
+    },
+    "Choose a different, non-empty term." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un terme différent et non vide."
+          }
+        }
+      }
+    },
+    "Choose the language Entrevoix uses for transcription." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez la langue utilisée par Entrevoix pour la transcription."
+          }
+        }
+      }
+    },
+    "Clipboard" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presse-papiers"
+          }
+        }
+      }
+    },
+    "Configuration error" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur de configuration"
+          }
+        }
+      }
+    },
+    "Configure a provider" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurer un fournisseur"
+          }
+        }
+      }
+    },
+    "Connection" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion"
+          }
+        }
+      }
+    },
+    "Create reusable instructions to refine your dictations." : {
+      "comment" : "A description of the benefits of creating reusable instructions.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créez des instructions réutilisables pour affiner vos dictées."
+          }
+        }
+      }
+    },
+    "Create workflows in Entrevoix for Mac to combine saved prompts." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créez des flux de travail dans Entrevoix pour Mac afin de combiner des invites enregistrées."
+          }
+        }
+      }
+    },
+    "Customization" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personnalisation"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "comment" : "A button that deletes a prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer"
+          }
+        }
+      }
+    },
+    "Delete %@?" : {
+      "comment" : "A confirmation dialog that lets the user delete a cleanup prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer « %@ » ?"
+          }
+        }
+      }
+    },
+    "Choose a supported icon." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez une icône prise en charge."
+          }
+        }
+      }
+    },
+    "Delivery" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi"
+          }
+        }
+      }
+    },
+    "Dictation" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictée"
+          }
+        }
+      }
+    },
+    "Dictation Dictionary" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictionnaire de dictée"
+          }
+        }
+      }
+    },
+    "Dutch" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Néerlandais"
+          }
+        }
+      }
+    },
+    "Edit prompt" : {
+      "comment" : "A title for a view that edits a cleanup prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier l’invite"
+          }
+        }
+      }
+    },
+    "English" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anglais"
+          }
+        }
+      }
+    },
+    "Enter a valid http:// or https:// URL." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez une URL http:// ou https:// valide."
+          }
+        }
+      }
+    },
+    "Enter the provider address, for example https://api.example.com/v1." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez l’adresse du fournisseur, par exemple https://api.example.com/v1."
+          }
+        }
+      }
+    },
+    "Entrevoix" : {
+      "comment" : "The title of the main app.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrevoix"
+          }
+        }
+      }
+    },
+    "Enter a prompt name." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez un nom d’invite."
+          }
+        }
+      }
+    },
+    "Enter prompt instructions." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez les instructions de l’invite."
+          }
+        }
+      }
+    },
+    "French" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Français"
+          }
+        }
+      }
+    },
+    "General" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Général"
+          }
+        }
+      }
+    },
+    "German" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allemand"
+          }
+        }
+      }
+    },
+    "Hindi" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hindi"
+          }
+        }
+      }
+    },
+    "Icon" : {
+      "comment" : "A label for the system image picker in a prompt editor.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icône"
+          }
+        }
+      }
+    },
+    "If cleanup fails" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si le nettoyage échoue"
+          }
+        }
+      }
+    },
+    "Improve transcript after dictation" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Améliorer la transcription après la dictée"
+          }
+        }
+      }
+    },
+    "Indonesian" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indonésien"
+          }
+        }
+      }
+    },
+    "Instructions" : {
+      "comment" : "A label for the instructions field in a prompt editor.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instructions"
+          }
+        }
+      }
+    },
+    "Italian" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Italien"
+          }
+        }
+      }
+    },
+    "Japanese" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Japonais"
+          }
+        }
+      }
+    },
+    "Korean" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coréen"
+          }
+        }
+      }
+    },
+    "Language" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Langue"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "comment" : "A label for the name of a prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom"
+          }
+        }
+      }
+    },
+    "New prompt" : {
+      "comment" : "The title of a new prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouvelle invite"
+          }
+        }
+      }
+    },
+    "No dictionary terms" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun terme dans le dictionnaire"
+          }
+        }
+      }
+    },
+    "No prompts saved" : {
+      "comment" : "A message displayed when a user has not created any cleanup prompts.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune invite enregistrée"
+          }
+        }
+      }
+    },
+    "No provider configured" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun fournisseur configuré"
+          }
+        }
+      }
+    },
+    "No workflows" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun flux de travail"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Paste into active text field" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coller dans le champ de texte actif"
+          }
+        }
+      }
+    },
+    "Play feedback sounds" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Émettre des sons de confirmation"
+          }
+        }
+      }
+    },
+    "Polish" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polonais"
+          }
+        }
+      }
+    },
+    "Portuguese" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portugais"
+          }
+        }
+      }
+    },
+    "Processing" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traitement"
+          }
+        }
+      }
+    },
+    "Prompt" : {
+      "comment" : "A section of a prompt editor for the prompt's content.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invite"
+          }
+        }
+      }
+    },
+    "Prompt editing is managed on Entrevoix for Mac. Saved prompts remain available for iOS cleanup." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La modification des invites est gérée dans Entrevoix pour Mac. Les invites enregistrées restent disponibles pour le nettoyage sur iOS."
+          }
+        }
+      }
+    },
+    "Prompts" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invites"
+          }
+        }
+      }
+    },
+    "Prompts sync automatically with Entrevoix for Mac." : {
+      "comment" : "A footer for the list of cleanup prompts.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les invites se synchronisent automatiquement avec Entrevoix pour Mac."
+          }
+        }
+      }
+    },
+    "Provider" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fournisseur"
+          }
+        }
+      }
+    },
+    "Providers" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fournisseurs"
+          }
+        }
+      }
+    },
+    "Ready when you are" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prêt quand vous l’êtes"
+          }
+        }
+      }
+    },
+    "Reduce long internal pauses" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réduire les longues pauses internes"
+          }
+        }
+      }
+    },
+    "Reset all settings?" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser tous les réglages ?"
+          }
+        }
+      }
+    },
+    "Reset settings" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialiser les réglages"
+          }
+        }
+      }
+    },
+    "Russian" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Russe"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "comment" : "A button that saves changes to a prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer"
+          }
+        }
+      }
+    },
+    "schema" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "schéma"
+          }
+        }
+      }
+    },
+    "Selected cleanup prompt" : {
+      "comment" : "A label describing the active cleanup prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invite de nettoyage sélectionnée"
+          }
+        }
+      }
+    },
+    "Send result to" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer le résultat vers"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages"
+          }
+        }
+      }
+    },
+    "Settings restored" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages restaurés"
+          }
+        }
+      }
+    },
+    "Spanish" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espagnol"
+          }
+        }
+      }
+    },
+    "Stop and show an error" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter et afficher une erreur"
+          }
+        }
+      }
+    },
+    "STT Transcription" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcription STT"
+          }
+        }
+      }
+    },
+    "Term" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terme"
+          }
+        }
+      }
+    },
+    "Term already exists" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le terme existe déjà"
+          }
+        }
+      }
+    },
+    "The API key could not be stored securely." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé API n’a pas pu être stockée de manière sécurisée."
+          }
+        }
+      }
+    },
+    "The key is stored in the device Keychain; it is never written to Entrevoix preferences." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé est stockée dans le trousseau de l’appareil ; elle n’est jamais écrite dans les préférences d’Entrevoix."
+          }
+        }
+      }
+    },
+    "These settings were created by a newer version of Entrevoix." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ces réglages ont été créés par une version plus récente d’Entrevoix."
+          }
+        }
+      }
+    },
+    "This also removes the prompt from saved workflows." : {
+      "comment" : "A confirmation dialog message that appears when a user deletes a prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette action supprime aussi l’invite des flux de travail enregistrés."
+          }
+        }
+      }
+    },
+    "This removes Entrevoix preferences from this device. API keys remain protected in your Keychain." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette action supprime les préférences d’Entrevoix de cet appareil. Les clés API restent protégées dans votre trousseau."
+          }
+        }
+      }
+    },
+    "Trim leading and trailing silence" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer le silence au début et à la fin"
+          }
+        }
+      }
+    },
+    "TTT Cleanup" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nettoyage TTT"
+          }
+        }
+      }
+    },
+    "Turkish" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turc"
+          }
+        }
+      }
+    },
+    "Ukrainian" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ukrainien"
+          }
+        }
+      }
+    },
+    "Use %@ for cleanup" : {
+      "comment" : "A button that toggles whether a cleanup prompt is active. The argument is the name of the prompt.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser %@ pour le nettoyage"
+          }
+        }
+      }
+    },
+    "Use for cleanup" : {
+      "comment" : "A button that saves a prompt and uses it for cleanup.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser pour le nettoyage"
+          }
+        }
+      }
+    },
+    "Use the original transcript" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser la transcription d’origine"
+          }
+        }
+      }
+    },
+    "Vietnamese" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vietnamien"
+          }
+        }
+      }
+    },
+    "Workflows" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flux de travail"
+          }
+        }
+      }
+    },
+    "Your iOS recording controls will appear here." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos commandes d’enregistrement iOS apparaîtront ici."
+          }
+        }
+      }
+    },
+    "Your previous settings could not be read, so Entrevoix restored safe defaults." : {
+      "comment" : "Text displayed in a notification when the user's previous settings could not be read, prompting Entrevoix to restore safe defaults.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos réglages précédents n’ont pas pu être lus. Entrevoix a restauré des réglages sûrs."
+          }
+        }
+      }
+    }
   },
-  "version" : "1.0"
+  "version" : "1.1"
 }
