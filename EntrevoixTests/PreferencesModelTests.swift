@@ -59,6 +59,57 @@ struct PreferencesModelTests {
         #expect(savedPreferences?.cleanupEnabled == false)
     }
 
+    @Test("CloudKit sync is disabled on the simulator")
+    func cloudKitSyncAvailabilityDisablesSimulator() {
+        #expect(!CloudKitSyncAvailability.isAvailable(isSimulator: true))
+        #expect(CloudKitSyncAvailability.isAvailable(isSimulator: false))
+    }
+
+    @Test("Adding Apple Foundation persists once without changing provider selections")
+    func addingAppleProviderPreservesSelectionsAndAvoidsDuplicates() {
+        let remoteProvider = RemoteProviderProfile.openAI()
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(remoteProvider)]
+        preferences.selectedSTTProviderID = .remote(remoteProvider.id)
+        preferences.selectedTTTProviderID = .remote(remoteProvider.id)
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(preferences))
+        let secretStore = SecretStoreSpy()
+        let model = PreferencesModel(preferencesStore: preferencesStore, secretStore: secretStore)
+
+        model.addAppleProvider()
+        model.addAppleProvider()
+
+        #expect(model.preferences.providerCatalog == [.remote(remoteProvider), .apple])
+        #expect(model.preferences.selectedSTTProviderID == .remote(remoteProvider.id))
+        #expect(model.preferences.selectedTTTProviderID == .remote(remoteProvider.id))
+        #expect(preferencesStore.saved == [model.preferences])
+        #expect(secretStore.saved.isEmpty)
+    }
+
+    @Test("Adding OpenAI Codex selects text cleanup and preserves its model")
+    func addingCodexProviderSelectsTextCleanup() throws {
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences()))
+        let model = PreferencesModel(
+            preferencesStore: preferencesStore,
+            secretStore: SecretStoreSpy(),
+            codexCredentialsStore: CodexCredentialsStoreSpy(),
+            codexAuthenticator: CodexAuthenticatorSpy()
+        )
+
+        model.addCodexProvider()
+        model.setCodexModel(.gpt56Terra)
+
+        let entry = try #require(model.preferences.providerCatalog.first)
+        let profile = try #require(entry.codexProfile)
+        #expect(entry.id == .codex)
+        #expect(entry.supportsTTT)
+        #expect(!entry.supportsSTT)
+        #expect(profile.model == .gpt56Terra)
+        #expect(model.preferences.selectedTTTProviderID == .codex)
+        #expect(model.preferences.cleanupEnabled)
+        #expect(preferencesStore.saved.count == 2)
+    }
+
     @Test("Adding an OpenAI provider persists its key separately")
     func addingOpenAIProviderPersistsKeySeparately() throws {
         let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences()))
@@ -105,7 +156,8 @@ struct PreferencesModelTests {
         #expect(model.preferences.selectedSTTProviderID == sttProviderID)
         #expect(model.preferences.selectedTTTProviderID == .remote(provider.id))
         #expect(model.preferences.cleanupEnabled)
-        #expect(secretStore.saved.last == [provider.id: "anthropic-key"])
+        #expect(secretStore.saved.last?[sttProviderID?.remoteID ?? UUID()] == "openai-key")
+        #expect(secretStore.saved.last?[provider.id] == "anthropic-key")
     }
 
     @Test("Adding an OpenAI-compatible provider persists its address and key")
@@ -150,6 +202,106 @@ struct PreferencesModelTests {
         #expect(secretStore.saved.isEmpty)
         #expect(preferencesStore.saved.isEmpty)
         #expect(model.configurationError?.contains("super-secret") == false)
+    }
+
+    @Test("Editing a remote provider preserves its identity, selections, and current key")
+    func editingRemoteProviderPreservesSelectionsAndCurrentKey() throws {
+        var provider = RemoteProviderProfile.compatible()
+        provider.baseURL = "https://old.example.com/v1"
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(provider)]
+        preferences.selectedSTTProviderID = .remote(provider.id)
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(preferences))
+        let secretStore = SecretStoreSpy(secrets: [provider.id: "current-key"])
+        let model = PreferencesModel(preferencesStore: preferencesStore, secretStore: secretStore)
+
+        provider.baseURL = " https://new.example.com/v1 "
+        let didUpdate = model.updateRemoteProvider(provider, apiKey: "")
+
+        let entry = try #require(model.preferences.providerCatalog.first)
+        guard case .remote(let savedProvider) = entry else {
+            Issue.record("Expected an edited remote provider")
+            return
+        }
+        #expect(didUpdate)
+        #expect(savedProvider.id == provider.id)
+        #expect(savedProvider.baseURL == "https://new.example.com/v1")
+        #expect(model.preferences.selectedSTTProviderID == .remote(provider.id))
+        #expect(secretStore.saved.isEmpty)
+        #expect(preferencesStore.saved.last?.providerCatalog == [.remote(savedProvider)])
+    }
+
+    @Test("Replacing a provider key retains the keys of other configured providers")
+    func replacingProviderKeyRetainsOtherProviderKeys() {
+        let openAI = RemoteProviderProfile.openAI()
+        var compatible = RemoteProviderProfile.compatible()
+        compatible.baseURL = "https://models.example.com/v1"
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(openAI), .remote(compatible)]
+        let secretStore = SecretStoreSpy(secrets: [openAI.id: "openai-key", compatible.id: "old-compatible-key"])
+        let model = PreferencesModel(
+            preferencesStore: PreferencesStoreSpy(loadResult: .loaded(preferences)),
+            secretStore: secretStore
+        )
+
+        compatible.baseURL = "https://updated.example.com/v1"
+        #expect(model.updateRemoteProvider(compatible, apiKey: "new-compatible-key"))
+        #expect(secretStore.saved.last?[openAI.id] == "openai-key")
+        #expect(secretStore.saved.last?[compatible.id] == "new-compatible-key")
+    }
+
+    @Test("Editing a compatible provider saves its connection and capability settings")
+    func editingCompatibleProviderSavesAllSettings() throws {
+        var provider = RemoteProviderProfile.compatible()
+        provider.baseURL = "https://old.example.com/v1"
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(provider)]
+        let model = PreferencesModel(
+            preferencesStore: PreferencesStoreSpy(loadResult: .loaded(preferences)),
+            secretStore: SecretStoreSpy(secrets: [provider.id: "current-key"])
+        )
+
+        provider.name = "  Local provider  "
+        provider.baseURL = " https://new.example.com/v1 "
+        provider.authentication = .apiKey
+        provider.customHeaderName = " X-Provider-Key "
+        provider.modelsPath = " api/models "
+        provider.stt = STTCapability(path: " speech-to-text ", model: " whisper-large ", uploadFormat: .flac)
+        provider.ttt = TTTCapability(path: " chat/completions ", model: " cleanup-model ", format: .chatCompletions)
+
+        #expect(model.updateRemoteProvider(provider, apiKey: ""))
+
+        let entry = try #require(model.preferences.providerCatalog.first)
+        let savedProvider = try #require(entry.remoteProfile)
+        #expect(savedProvider.name == "Local provider")
+        #expect(savedProvider.baseURL == "https://new.example.com/v1")
+        #expect(savedProvider.authentication == .apiKey)
+        #expect(savedProvider.customHeaderName == "X-Provider-Key")
+        #expect(savedProvider.modelsPath == "api/models")
+        #expect(savedProvider.stt == STTCapability(path: "speech-to-text", model: "whisper-large", uploadFormat: .flac))
+        #expect(savedProvider.ttt == TTTCapability(path: "chat/completions", model: "cleanup-model", format: .chatCompletions))
+    }
+
+    @Test("Loading models uses the configured models route and retains the current key")
+    func loadingModelsUsesProfileSettings() async {
+        var provider = RemoteProviderProfile.compatible()
+        provider.baseURL = "https://models.example.com/v1"
+        provider.modelsPath = "available-models"
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(provider)]
+        let catalog = ModelCatalogSpy(models: ["model-b", "model-a"])
+        let model = PreferencesModel(
+            preferencesStore: PreferencesStoreSpy(loadResult: .loaded(preferences)),
+            secretStore: SecretStoreSpy(secrets: [provider.id: "current-key"]),
+            modelCatalog: catalog
+        )
+
+        let models = await model.loadModels(for: provider, replacementAPIKey: "")
+        let request = await catalog.request
+
+        #expect(models == ["model-b", "model-a"])
+        #expect(request?.configuration.path == "available-models")
+        #expect(request?.apiKey == "current-key")
     }
 
     @Test("An Anthropic keychain failure restores the previous cleanup selection")
@@ -393,20 +545,65 @@ private final class PreferencesStoreSpy: PreferencesStoring {
 private final class SecretStoreSpy: SecretStoring {
     let saveError: (any Error)?
     private(set) var saved: [[UUID: String]] = []
+    private var secrets: [UUID: String]
 
-    init(saveError: (any Error)? = nil) {
+    init(secrets: [UUID: String] = [:], saveError: (any Error)? = nil) {
+        self.secrets = secrets
         self.saveError = saveError
     }
 
     func read(profileIDs: [UUID]) throws -> [UUID: String] {
-        [:]
+        secrets.filter { profileIDs.contains($0.key) }
     }
 
     func save(_ secrets: [UUID: String]) throws {
         if let saveError {
             throw saveError
         }
+        self.secrets = secrets
         saved.append(secrets)
+    }
+}
+
+private actor ModelCatalogSpy: RemoteModelDiscovering {
+    struct Request: Sendable {
+        let configuration: ProviderConfiguration
+        let apiKey: String
+    }
+
+    let models: [String]
+    private(set) var request: Request?
+
+    init(models: [String]) {
+        self.models = models
+    }
+
+    func discoverModels(configuration: ProviderConfiguration, apiKey: String) async throws -> [String] {
+        request = Request(configuration: configuration, apiKey: apiKey)
+        return models
+    }
+}
+
+private actor CodexCredentialsStoreSpy: CodexCredentialsStoring {
+    private var credentials: CodexCredentials?
+
+    func readCodexCredentials() async throws -> CodexCredentials? {
+        credentials
+    }
+
+    func saveCodexCredentials(_ credentials: CodexCredentials?) async throws {
+        self.credentials = credentials
+    }
+}
+
+@MainActor
+private final class CodexAuthenticatorSpy: CodexAuthenticating {
+    func connect() async throws -> CodexCredentials {
+        CodexCredentials(
+            accessToken: "access-token",
+            refreshToken: "refresh-token",
+            expiresAt: .distantFuture
+        )
     }
 }
 

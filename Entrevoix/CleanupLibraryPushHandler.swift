@@ -12,7 +12,9 @@ final class EntrevoixAppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        application.registerForRemoteNotifications()
+        if CloudKitSyncAvailability.isAvailable {
+            application.registerForRemoteNotifications()
+        }
         return true
     }
 

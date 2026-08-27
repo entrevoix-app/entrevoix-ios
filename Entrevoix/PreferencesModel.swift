@@ -1,5 +1,6 @@
 import EntrevoixAppleAdapters
 import EntrevoixCore
+import EntrevoixOpenAIAdapters
 import SwiftUI
 
 @MainActor
@@ -7,23 +8,33 @@ import SwiftUI
 final class PreferencesModel {
     private let preferencesStore: any PreferencesStoring
     private let secretStore: any SecretStoring
+    private let modelCatalog: any RemoteModelDiscovering
+    private let codexCredentialsStore: any CodexCredentialsStoring
+    private let codexAuthenticator: any CodexAuthenticating
     private let cleanupLibraryCloudSync: CleanupLibraryCloudSync
     private let dictationDictionaryCloudSync: DictationDictionaryCloudSync
 
     var preferences: AppPreferences
     var recoveryMessage: String?
     var configurationError: String?
+    var codexConnectionState: CodexConnectionState = .disconnected
 
     init(
         preferencesStore: any PreferencesStoring = UserDefaultsPreferencesStore(
             defaults: KeyboardHandoffStore.sharedDefaults()
         ),
         secretStore: any SecretStoring = KeychainStore(),
+        modelCatalog: any RemoteModelDiscovering = RemoteModelCatalogClient(),
+        codexCredentialsStore: any CodexCredentialsStoring = CodexCredentialVault(),
+        codexAuthenticator: any CodexAuthenticating = CodexBrowserAuthenticator(),
         cleanupLibraryCloudStore: any CleanupLibraryCloudStoring = UnavailableCleanupLibraryCloudStore(),
         dictationDictionaryCloudStore: any DictationDictionaryCloudStoring = UnavailableDictationDictionaryCloudStore()
     ) {
         self.preferencesStore = preferencesStore
         self.secretStore = secretStore
+        self.modelCatalog = modelCatalog
+        self.codexCredentialsStore = codexCredentialsStore
+        self.codexAuthenticator = codexAuthenticator
         self.cleanupLibraryCloudSync = CleanupLibraryCloudSync(store: cleanupLibraryCloudStore)
         self.dictationDictionaryCloudSync = DictationDictionaryCloudSync(store: dictationDictionaryCloudStore)
 
@@ -54,6 +65,10 @@ final class PreferencesModel {
             self.persist()
         }
         dictationDictionaryCloudSync.start(with: preferences.dictationDictionary, seedLocalTerms: !preferences.dictationDictionary.isEmpty)
+
+        if preferences.providerCatalog.contains(where: { $0.id == .codex }) {
+            refreshCodexConnectionState()
+        }
     }
 
     func binding<Value>(for keyPath: WritableKeyPath<AppPreferences, Value>) -> Binding<Value> {
@@ -69,6 +84,59 @@ final class PreferencesModel {
     @discardableResult
     func addOpenAIProvider(apiKey: String) -> Bool {
         addRemoteProvider(RemoteProviderProfile.openAI(), apiKey: apiKey)
+    }
+
+    func addAppleProvider() {
+        guard !preferences.providerCatalog.contains(where: { $0.id == .apple }) else { return }
+        preferences.providerCatalog.append(.apple)
+        persist()
+    }
+
+    func addCodexProvider() {
+        guard !preferences.providerCatalog.contains(where: { $0.id == .codex }) else { return }
+        preferences.providerCatalog.append(.codex(CodexProviderProfile()))
+        preferences.selectedTTTProviderID = .codex
+        preferences.cleanupEnabled = true
+        persist()
+        refreshCodexConnectionState()
+    }
+
+    func setCodexModel(_ codexModel: CodexModel) {
+        guard let index = preferences.providerCatalog.firstIndex(where: { $0.id == .codex }),
+              case .codex(var profile) = preferences.providerCatalog[index] else { return }
+        profile.model = codexModel
+        preferences.providerCatalog[index] = .codex(profile)
+        persist()
+    }
+
+    func connectCodex() {
+        guard codexConnectionState != .connecting else { return }
+        codexConnectionState = .connecting
+        Task { [weak self, codexAuthenticator, codexCredentialsStore] in
+            do {
+                let credentials = try await codexAuthenticator.connect()
+                try Task.checkCancellation()
+                try await codexCredentialsStore.saveCodexCredentials(credentials)
+                self?.codexConnectionState = .connected
+            } catch is CancellationError {
+                self?.codexConnectionState = .disconnected
+            } catch {
+                self?.codexConnectionState = .failed
+            }
+        }
+    }
+
+    func disconnectCodex() {
+        guard codexConnectionState != .connecting else { return }
+        codexConnectionState = .connecting
+        Task { [weak self, codexCredentialsStore] in
+            do {
+                try await codexCredentialsStore.saveCodexCredentials(nil)
+                self?.codexConnectionState = .disconnected
+            } catch {
+                self?.codexConnectionState = .failed
+            }
+        }
     }
 
     @discardableResult
@@ -98,6 +166,67 @@ final class PreferencesModel {
         var provider = RemoteProviderProfile.compatible()
         provider.baseURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         return addRemoteProvider(provider, apiKey: apiKey)
+    }
+
+    @discardableResult
+    func updateRemoteProvider(_ provider: RemoteProviderProfile, apiKey: String) -> Bool {
+        guard let index = preferences.providerCatalog.firstIndex(where: { $0.id == .remote(provider.id) }) else {
+            return false
+        }
+
+        let updatedProvider = normalized(provider)
+
+        do {
+            let existingSecrets = try secretStore.read(profileIDs: remoteProviderIDs)
+            let replacementKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            let keyToValidate = replacementKey.isEmpty ? existingSecrets[updatedProvider.id] ?? "" : replacementKey
+            let existingNames = preferences.providerCatalog.compactMap { entry -> String? in
+                guard let profile = entry.remoteProfile, profile.id != updatedProvider.id else { return nil }
+                return profile.name
+            }
+            let validationIssues = updatedProvider.validationIssues(apiKey: keyToValidate, existingNames: existingNames)
+
+            guard validationIssues.isEmpty else {
+                configurationError = providerValidationMessage(for: validationIssues[0])
+                return false
+            }
+
+            guard updatedProvider.configuration(for: updatedProvider.stt == nil ? .ttt : .stt)?.endpointURL != nil else {
+                configurationError = String(localized: "Enter a valid http:// or https:// URL.")
+                return false
+            }
+
+            if !replacementKey.isEmpty {
+                var secrets = existingSecrets
+                secrets[updatedProvider.id] = replacementKey
+                try secretStore.save(secrets)
+            }
+
+            preferences.providerCatalog[index] = .remote(updatedProvider)
+            persist()
+            configurationError = nil
+            return true
+        } catch {
+            configurationError = String(localized: "The API key could not be stored securely.") + " " + error.localizedDescription
+            return false
+        }
+    }
+
+    func loadModels(for profile: RemoteProviderProfile, replacementAPIKey: String) async -> [String]? {
+        guard var configuration = profile.configuration(for: profile.stt == nil ? .ttt : .stt) else {
+            return nil
+        }
+
+        configuration.path = profile.modelsPath
+        let suppliedKey = replacementAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        do {
+            let storedKey = try secretStore.read(profileIDs: [profile.id])[profile.id] ?? ""
+            let apiKey = suppliedKey.isEmpty ? storedKey : suppliedKey
+            return try await modelCatalog.discoverModels(configuration: configuration, apiKey: apiKey)
+        } catch {
+            return nil
+        }
     }
 
     func reset() {
@@ -181,6 +310,58 @@ final class PreferencesModel {
         preferencesStore.save(preferences)
     }
 
+    private func refreshCodexConnectionState() {
+        Task { [weak self, codexCredentialsStore] in
+            do {
+                let credentials = try await codexCredentialsStore.readCodexCredentials()
+                self?.codexConnectionState = credentials == nil ? .disconnected : .connected
+            } catch {
+                self?.codexConnectionState = .failed
+            }
+        }
+    }
+
+    private func normalized(_ provider: RemoteProviderProfile) -> RemoteProviderProfile {
+        var provider = provider
+        provider.name = provider.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        provider.baseURL = provider.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        provider.customHeaderName = provider.customHeaderName.trimmingCharacters(in: .whitespacesAndNewlines)
+        provider.modelsPath = provider.modelsPath.trimmingCharacters(in: .whitespacesAndNewlines)
+        if var stt = provider.stt {
+            stt.path = stt.path.trimmingCharacters(in: .whitespacesAndNewlines)
+            stt.model = stt.model.trimmingCharacters(in: .whitespacesAndNewlines)
+            provider.stt = stt
+        }
+        if var ttt = provider.ttt {
+            ttt.path = ttt.path.trimmingCharacters(in: .whitespacesAndNewlines)
+            ttt.model = ttt.model.trimmingCharacters(in: .whitespacesAndNewlines)
+            provider.ttt = ttt
+        }
+        provider.normalizeFixedProviderFields()
+        return provider
+    }
+
+    private func providerValidationMessage(for issue: ProviderValidationIssue) -> String {
+        switch issue {
+        case .missingName:
+            String(localized: "A provider name is required.")
+        case .duplicateName:
+            String(localized: "Provider names must be unique.")
+        case .invalidEndpoint:
+            String(localized: "Enter a valid http:// or https:// URL.")
+        case .missingCapability:
+            String(localized: "Select at least one capability.")
+        case .missingRoute:
+            String(localized: "A route is required for each capability.")
+        case .missingModel:
+            String(localized: "A model is required.")
+        case .missingHeaderName:
+            String(localized: "An authentication header name is required.")
+        case .missingAPIKey:
+            String(localized: "An API key is required for this authentication mode.")
+        }
+    }
+
     private func addRemoteProvider(_ provider: RemoteProviderProfile, apiKey: String) -> Bool {
         let validationIssues = provider.validationIssues(apiKey: apiKey)
         guard validationIssues.isEmpty,
@@ -200,7 +381,9 @@ final class PreferencesModel {
         }
 
         do {
-            try secretStore.save([provider.id: apiKey])
+            var secrets = try secretStore.read(profileIDs: remoteProviderIDs)
+            secrets[provider.id] = apiKey
+            try secretStore.save(secrets)
             persist()
             configurationError = nil
             return true
@@ -226,6 +409,10 @@ final class PreferencesModel {
                 workflows: preferences.cleanupWorkflows
             )
         )
+    }
+
+    private var remoteProviderIDs: [UUID] {
+        preferences.providerCatalog.compactMap(\.remoteProfile?.id)
     }
 
     private func synchronizeLegacyPrompt() {

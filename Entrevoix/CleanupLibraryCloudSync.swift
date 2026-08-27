@@ -2,6 +2,18 @@ import CloudKit
 import EntrevoixCore
 import Foundation
 
+enum CloudKitSyncAvailability {
+    static var isAvailable: Bool {
+        #if targetEnvironment(simulator)
+        false
+        #else
+        true
+        #endif
+    }
+
+    static func isAvailable(isSimulator: Bool) -> Bool { !isSimulator }
+}
+
 @MainActor
 final class CleanupLibraryCloudSync {
     static let subscriptionID = "cleanup-library-v2-ios"
