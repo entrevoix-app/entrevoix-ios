@@ -1619,6 +1619,256 @@
         }
       }
     },
+    "Choose a transcription provider before dictating from the keyboard." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un fournisseur de transcription avant de dicter depuis le clavier."
+          }
+        }
+      }
+    },
+    "The transcription provider is missing its API key." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé API du fournisseur de transcription est absente."
+          }
+        }
+      }
+    },
+    "The selected transcription provider is not available on iPhone." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fournisseur de transcription sélectionné n’est pas disponible sur iPhone."
+          }
+        }
+      }
+    },
+    "Choose a cleanup provider or turn off transcript improvement." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un fournisseur de nettoyage ou désactivez l’amélioration de la transcription."
+          }
+        }
+      }
+    },
+    "The cleanup provider is missing its API key." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé API du fournisseur de nettoyage est absente."
+          }
+        }
+      }
+    },
+    "The selected cleanup provider is not available on iPhone." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fournisseur de nettoyage sélectionné n’est pas disponible sur iPhone."
+          }
+        }
+      }
+    },
+    "Choose a valid cleanup prompt or workflow before dictating." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un prompt ou un workflow de nettoyage valide avant de dicter."
+          }
+        }
+      }
+    },
+    "Entrevoix could not read the API key needed for dictation." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrevoix n’a pas pu lire la clé API nécessaire à la dictée."
+          }
+        }
+      }
+    },
+    "Swipe back to the app where you were typing, speak, then tap the red microphone in the Entrevoix keyboard to finish." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenez à l’app dans laquelle vous écriviez, parlez, puis touchez le microphone rouge du clavier Entrevoix pour terminer."
+          }
+        }
+      }
+    },
+    "This keyboard request is from an incompatible version of Entrevoix." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette demande du clavier provient d’une version incompatible d’Entrevoix."
+          }
+        }
+      }
+    },
+    "The dictation request expired. Return to your app and try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La demande de dictée a expiré. Revenez à votre app et réessayez."
+          }
+        }
+      }
+    },
+    "Microphone access was denied. Allow Entrevoix in Settings and try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’accès au microphone a été refusé. Autorisez Entrevoix dans Réglages, puis réessayez."
+          }
+        }
+      }
+    },
+    "Entrevoix could not start audio capture. Try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrevoix n’a pas pu démarrer la capture audio. Réessayez."
+          }
+        }
+      }
+    },
+    "No audio was captured. Try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun audio n’a été capturé. Réessayez."
+          }
+        }
+      }
+    },
+    "No speech was detected. Try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune parole n’a été détectée. Réessayez."
+          }
+        }
+      }
+    },
+    "The dictation session ended unexpectedly. Try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La session de dictée s’est terminée de manière inattendue. Réessayez."
+          }
+        }
+      }
+    },
+    "Transcription failed. Check your provider settings and try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La transcription a échoué. Vérifiez les réglages du fournisseur, puis réessayez."
+          }
+        }
+      }
+    },
+    "Transcript improvement failed. Check your provider settings and try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’amélioration de la transcription a échoué. Vérifiez les réglages du fournisseur, puis réessayez."
+          }
+        }
+      }
+    },
+    "Dictation took too long to finish. Try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La dictée a mis trop de temps à se terminer. Réessayez."
+          }
+        }
+      }
+    },
+    "Preparing microphone…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation du microphone…"
+          }
+        }
+      }
+    },
+    "Allow microphone access if iOS asks, and keep Entrevoix open until the microphone indicator appears." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisez l’accès au microphone si iOS le demande, et gardez Entrevoix ouvert jusqu’à l’apparition de l’indicateur du microphone."
+          }
+        }
+      }
+    },
+    "Dictation is on" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictée activée"
+          }
+        }
+      }
+    },
+    "Entrevoix is preparing your text." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrevoix prépare votre texte."
+          }
+        }
+      }
+    },
+    "Dictation failed" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la dictée"
+          }
+        }
+      }
+    },
+    "Transcribing…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcription…"
+          }
+        }
+      }
+    },
     "Your previous settings could not be read, so Entrevoix restored safe defaults." : {
       "comment" : "Text displayed in a notification when the user's previous settings could not be read, prompting Entrevoix to restore safe defaults.",
       "isCommentAutoGenerated" : true,

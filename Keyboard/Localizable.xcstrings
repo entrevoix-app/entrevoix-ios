@@ -45,6 +45,106 @@
         }
       }
     },
+    "Microphone preparation took too long. Open Entrevoix, then try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La préparation du microphone a pris trop de temps. Ouvrez Entrevoix, puis réessayez."
+          }
+        }
+      }
+    },
+    "Entrevoix did not respond. Open the app, then try again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrevoix n’a pas répondu. Ouvrez l’app, puis réessayez."
+          }
+        }
+      }
+    },
+    "Finishes recording and starts transcription" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termine l’enregistrement et lance la transcription"
+          }
+        }
+      }
+    },
+    "Finishing…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finalisation…"
+          }
+        }
+      }
+    },
+    "Opening Entrevoix…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouverture d’Entrevoix…"
+          }
+        }
+      }
+    },
+    "Opens Entrevoix to start recording" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvre Entrevoix pour démarrer l’enregistrement"
+          }
+        }
+      }
+    },
+    "Reconnecting to Entrevoix…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnexion à Entrevoix…"
+          }
+        }
+      }
+    },
+    "Entrevoix is preparing microphone access…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrevoix prépare l’accès au microphone…"
+          }
+        }
+      }
+    },
+    "Return to your app, then start speaking" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenez à votre app, puis commencez à parler"
+          }
+        }
+      }
+    },
+    "Stop dictation" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter la dictée"
+          }
+        }
+      }
+    },
     "Next keyboard" : {
       "extractionState" : "stale",
       "localizations" : {
