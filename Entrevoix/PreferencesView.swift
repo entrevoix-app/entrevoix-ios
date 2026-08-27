@@ -169,6 +169,7 @@ private struct ProvidersSettingsView: View {
     @Bindable var model: PreferencesModel
     @State private var isAddingProvider = false
     @State private var providerBeingEdited: RemoteProviderProfile?
+    @State private var isEditingCodex = false
 
     var body: some View {
         Form {
@@ -183,6 +184,23 @@ private struct ProvidersSettingsView: View {
                                     ProviderCatalogIcon(icon: remoteProvider.catalogIcon)
                                         .accessibilityHidden(true)
                                     Text(remoteProvider.name)
+                                        .foregroundStyle(.primary)
+                                    Spacer(minLength: 12)
+                                    Image(systemName: "chevron.right")
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                        .accessibilityHidden(true)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("Edit provider")
+                        } else if provider.codexProfile != nil {
+                            Button { isEditingCodex = true } label: {
+                                HStack(spacing: 12) {
+                                    ProviderCatalogIcon(icon: .openAI)
+                                        .accessibilityHidden(true)
+                                    Text(provider.displayName)
                                         .foregroundStyle(.primary)
                                     Spacer(minLength: 12)
                                     Image(systemName: "chevron.right")
@@ -213,6 +231,9 @@ private struct ProvidersSettingsView: View {
         }
         .sheet(item: $providerBeingEdited) { provider in
             EditRemoteProviderView(model: model, provider: provider)
+        }
+        .sheet(isPresented: $isEditingCodex) {
+            CodexProviderSettingsView(model: model)
         }
     }
 }
@@ -553,6 +574,12 @@ private struct AddProviderCatalogView: View {
                 ProviderCatalogItem(title: "OpenAI", icon: .openAI, accessibilityHint: "Configure provider") {
                     configurationKind = .openAI
                 }
+                if !model.preferences.providerCatalog.contains(where: { $0.id == .codex }) {
+                    ProviderCatalogItem(title: "OpenAI (Codex)", icon: .openAI, accessibilityHint: "Configure provider") {
+                        model.addCodexProvider()
+                        dismiss()
+                    }
+                }
                 ProviderCatalogItem(title: "Anthropic", icon: .anthropic, accessibilityHint: "Configure provider") {
                     configurationKind = .anthropic
                 }
@@ -658,6 +685,81 @@ private struct ProviderCatalogIcon: View {
     }
 }
 
+private struct CodexProviderSettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Bindable var model: PreferencesModel
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Label("Use your ChatGPT account to improve transcriptions.", systemImage: "person.crop.circle")
+                    connectionControls
+                } header: {
+                    Text("OpenAI (Codex)")
+                }
+
+                Section {
+                    Picker("Model", selection: codexModel) {
+                        ForEach(CodexModel.allCases) { model in
+                            Text(model.rawValue).tag(model)
+                        }
+                    }
+
+                    Text("OpenAI (Codex) is available for text cleanup only. Choose a separate speech-to-text provider.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } header: {
+                    Text("Text cleanup")
+                }
+            }
+            .navigationTitle("OpenAI (Codex)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private var codexModel: Binding<CodexModel> {
+        Binding(
+            get: { model.preferences.provider(for: .codex)?.codexProfile?.model ?? .gpt56Luna },
+            set: { model.setCodexModel($0) }
+        )
+    }
+
+    @ViewBuilder private var connectionControls: some View {
+        switch model.codexConnectionState {
+        case .disconnected:
+            Button("Connect ChatGPT", action: model.connectCodex)
+                .buttonStyle(.borderedProminent)
+        case .connecting:
+            HStack {
+                ProgressView()
+                Text("Connecting to ChatGPT…")
+            }
+        case .connected:
+            HStack {
+                Label("Connected", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                Spacer()
+                Button("Disconnect", action: model.disconnectCodex)
+                    .buttonStyle(.bordered)
+            }
+        case .failed:
+            HStack {
+                Label("Could not connect to ChatGPT.", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                Spacer()
+                Button("Connect ChatGPT", action: model.connectCodex)
+                    .buttonStyle(.bordered)
+            }
+        }
+    }
+}
+
 private struct AddRemoteProviderView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: PreferencesModel
@@ -721,64 +823,294 @@ private struct EditRemoteProviderView: View {
     @Bindable var model: PreferencesModel
     let provider: RemoteProviderProfile
     @State private var apiKey = ""
-    @State private var baseURL: String
+    @State private var draft: RemoteProviderProfile
+    @State private var discoveredModels: [String] = []
+    @State private var isLoadingModels = false
+    @State private var modelDiscoveryError: String?
+    @State private var modelLoadingRequest: UUID?
 
     init(model: PreferencesModel, provider: RemoteProviderProfile) {
         self.model = model
         self.provider = provider
-        _baseURL = State(initialValue: provider.baseURL)
+        _draft = State(initialValue: provider)
     }
 
     var body: some View {
         NavigationStack {
             Form {
-                if provider.kind == .openAICompatible {
-                    Section {
-                        TextField("Base URL", text: $baseURL)
-                            .keyboardType(.URL)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    } header: {
-                        Text("Connection")
-                    } footer: {
-                        Text("Enter the provider address, for example https://api.example.com/v1.")
-                    }
-                }
-
-                Section {
-                    SecureField("New API key", text: $apiKey)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                } footer: {
-                    Text("Leave this field blank to keep the current key. A replacement key is stored in the device Keychain.")
+                if draft.kind == .anthropic {
+                    anthropicSettings
+                } else {
+                    connectionSettings
+                    capabilities
                 }
 
                 if let configurationError = model.configurationError {
                     Section {
-                        Text(configurationError)
+                        Label(configurationError, systemImage: "exclamationmark.triangle")
                             .font(.footnote)
                             .foregroundStyle(.red)
                     }
                 }
             }
             .navigationTitle("Edit \(provider.name)")
+            .navigationBarTitleDisplayMode(.inline)
+            .task(id: modelLoadingRequest) {
+                guard modelLoadingRequest != nil else { return }
+                isLoadingModels = true
+                modelDiscoveryError = nil
+                let loadedModels = await model.loadModels(for: draft, replacementAPIKey: apiKey)
+                guard !Task.isCancelled else { return }
+                isLoadingModels = false
+                if let loadedModels {
+                    discoveredModels = loadedModels
+                } else {
+                    modelDiscoveryError = String(localized: "Could not load models. You can still enter one manually.")
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        var updatedProvider = provider
-                        if updatedProvider.kind == .openAICompatible {
-                            updatedProvider.baseURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-                        }
-                        if model.updateRemoteProvider(updatedProvider, apiKey: apiKey) {
+                        if model.updateRemoteProvider(draft, apiKey: apiKey) {
                             dismiss()
                         }
                     }
-                    .disabled(provider.kind == .openAICompatible && baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(isSaveDisabled)
                 }
             }
+        }
+    }
+
+    private var connectionSettings: some View {
+        Section {
+            TextField("Name", text: $draft.name)
+                .textInputAutocapitalization(.words)
+
+            TextField("Base URL", text: $draft.baseURL)
+                .keyboardType(.URL)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .disabled(draft.kind == .openAI)
+
+            Picker("Authentication", selection: $draft.authentication) {
+                ForEach(AuthenticationMode.allCases) { mode in
+                    Text(mode.displayName).tag(mode)
+                }
+            }
+            .disabled(draft.kind == .openAI)
+
+            if draft.authentication != .none {
+                SecureField("New API key", text: $apiKey)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+
+                if draft.authentication == .apiKey {
+                    TextField("Header name", text: $draft.customHeaderName)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+            }
+
+            if draft.kind == .openAICompatible {
+                TextField("Models path", text: $draft.modelsPath)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            }
+
+            Button {
+                modelLoadingRequest = UUID()
+            } label: {
+                if isLoadingModels {
+                    HStack {
+                        Text("Load / Refresh models")
+                        Spacer()
+                        ProgressView()
+                    }
+                } else {
+                    Text("Load / Refresh models")
+                }
+            }
+            .disabled(isLoadingModels || (draft.stt == nil && draft.ttt == nil))
+
+            if !discoveredModels.isEmpty {
+                Menu("Use a loaded model") {
+                    ForEach(discoveredModels, id: \.self) { modelID in
+                        Button(modelID) {
+                            if draft.stt != nil {
+                                draft.stt?.model = modelID
+                            } else {
+                                draft.ttt?.model = modelID
+                            }
+                        }
+                    }
+                }
+            }
+
+            if let modelDiscoveryError {
+                Text(modelDiscoveryError)
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+            }
+        } header: {
+            Text(draft.kind == .openAI ? "OpenAI" : "OpenAI-compatible")
+        } footer: {
+            if draft.authentication != .none {
+                Text("Leave this field blank to keep the current key. A replacement key is stored in the device Keychain.")
+            }
+        }
+    }
+
+    private var anthropicSettings: some View {
+        Section {
+            TextField("Name", text: $draft.name)
+                .textInputAutocapitalization(.words)
+
+            SecureField("New API key", text: $apiKey)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+
+            TextField("TTT model", text: tttModel)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+
+            Label(
+                "Anthropic is available for text cleanup only. Its endpoint and authentication are preconfigured.",
+                systemImage: "text.badge.checkmark"
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        } header: {
+            Text("Anthropic")
+        } footer: {
+            Text("Leave this field blank to keep the current key. A replacement key is stored in the device Keychain.")
+        }
+    }
+
+    private var capabilities: some View {
+        Section {
+            Toggle("Speech to text", isOn: sttEnabled)
+
+            if draft.stt != nil {
+                TextField("STT route", text: sttPath)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .disabled(draft.kind == .openAI)
+
+                TextField("STT model", text: sttModel)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+
+                Picker("Audio upload format", selection: sttUploadFormat) {
+                    ForEach(AudioUploadFormat.allCases) { format in
+                        Text(format.displayName).tag(format)
+                    }
+                }
+            }
+
+            Toggle("Text cleanup", isOn: tttEnabled)
+
+            if draft.ttt != nil {
+                TextField("TTT route", text: tttPath)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .disabled(draft.kind == .openAI)
+
+                TextField("TTT model", text: tttModel)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+
+                Picker("TTT API format", selection: tttFormat) {
+                    ForEach(CleanupAPIFormat.allCases) { format in
+                        Text(format.displayName).tag(format)
+                    }
+                }
+            }
+        } header: {
+            Text("Capabilities")
+        } footer: {
+            if draft.stt != nil {
+                Text("Format support varies by endpoint. When in doubt, choose WAV.")
+            }
+        }
+    }
+
+    private var sttEnabled: Binding<Bool> {
+        Binding(
+            get: { draft.stt != nil },
+            set: { isEnabled in
+                draft.stt = isEnabled ? STTCapability() : nil
+            }
+        )
+    }
+
+    private var tttEnabled: Binding<Bool> {
+        Binding(
+            get: { draft.ttt != nil },
+            set: { isEnabled in
+                draft.ttt = isEnabled ? TTTCapability() : nil
+            }
+        )
+    }
+
+    private var sttPath: Binding<String> {
+        Binding(get: { draft.stt?.path ?? "" }, set: { draft.stt?.path = $0 })
+    }
+
+    private var sttModel: Binding<String> {
+        Binding(get: { draft.stt?.model ?? "" }, set: { draft.stt?.model = $0 })
+    }
+
+    private var sttUploadFormat: Binding<AudioUploadFormat> {
+        Binding(get: { draft.stt?.uploadFormat ?? .wav }, set: { draft.stt?.uploadFormat = $0 })
+    }
+
+    private var tttPath: Binding<String> {
+        Binding(get: { draft.ttt?.path ?? "" }, set: { draft.ttt?.path = $0 })
+    }
+
+    private var tttModel: Binding<String> {
+        Binding(get: { draft.ttt?.model ?? "" }, set: { draft.ttt?.model = $0 })
+    }
+
+    private var tttFormat: Binding<CleanupAPIFormat> {
+        Binding(get: { draft.ttt?.format ?? .responses }, set: { draft.ttt?.format = $0 })
+    }
+
+    private var isSaveDisabled: Bool {
+        draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || (draft.kind == .openAICompatible && draft.baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+    }
+}
+
+private extension AuthenticationMode {
+    var displayName: String {
+        switch self {
+        case .bearer: "Bearer"
+        case .apiKey: "API key"
+        case .none: "None"
+        }
+    }
+}
+
+private extension AudioUploadFormat {
+    var displayName: String {
+        switch self {
+        case .wav: "WAV (lossless)"
+        case .m4aAAC: "M4A (AAC, 32 kb/s)"
+        case .flac: "FLAC (lossless)"
+        }
+    }
+}
+
+private extension CleanupAPIFormat {
+    var displayName: String {
+        switch self {
+        case .responses: "Responses API"
+        case .chatCompletions: "Chat Completions API"
+        case .anthropicMessages: "Anthropic Messages API"
         }
     }
 }
