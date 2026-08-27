@@ -242,6 +242,30 @@ final class PreferencesModel {
 
     func refreshDictationDictionary() { dictationDictionaryCloudSync.refresh() }
 
+    func makeKeyboardDictationRequest() throws -> DictationRequest {
+        let preferenceSnapshot = preferences
+        let providerIDs = [
+            preferenceSnapshot.selectedSTTProviderID?.remoteID,
+            preferenceSnapshot.selectedTTTProviderID?.remoteID
+        ].compactMap { $0 }
+        let secrets: [UUID: String]
+        do {
+            secrets = try secretStore.read(profileIDs: providerIDs)
+        } catch {
+            throw KeyboardDictationConfigurationError.couldNotReadCredentials
+        }
+
+        let transcription = try makeKeyboardTranscription(
+            preferences: preferenceSnapshot,
+            secrets: secrets
+        )
+        let cleanup = try makeKeyboardCleanupPlan(
+            preferences: preferenceSnapshot,
+            secrets: secrets
+        )
+        return DictationRequest(transcription: transcription, cleanup: cleanup, outputMode: .paste)
+    }
+
     func setActiveCleanupPrompt(_ id: UUID?) {
         let selection = id.map(CleanupTransformationSelection.prompt)
         guard selection == nil || preferences.isValidCleanupSelection(selection) else { return }
@@ -359,6 +383,111 @@ final class PreferencesModel {
             String(localized: "An authentication header name is required.")
         case .missingAPIKey:
             String(localized: "An API key is required for this authentication mode.")
+        }
+    }
+
+    private func makeKeyboardTranscription(
+        preferences: AppPreferences,
+        secrets: [UUID: String]
+    ) throws -> TranscriptionRequest {
+        guard let provider = preferences.provider(for: preferences.selectedSTTProviderID) else {
+            throw KeyboardDictationConfigurationError.noTranscriptionProvider
+        }
+
+        switch provider {
+        case .apple:
+            return TranscriptionRequest(
+                configuration: .openAITranscription,
+                apiKey: "",
+                prompt: preferences.dictationDictionaryPrompt,
+                language: preferences.sttLanguage.apiCode,
+                target: .apple(
+                    localeIdentifier: preferences.sttLanguage.apiCode,
+                    dictionaryTerms: preferences.dictationDictionary
+                )
+            )
+        case .codex:
+            throw KeyboardDictationConfigurationError.unsupportedTranscriptionProvider
+        case .remote(let profile):
+            guard let configuration = profile.configuration(for: .stt) else {
+                throw KeyboardDictationConfigurationError.noTranscriptionProvider
+            }
+            guard let apiKey = secrets[profile.id], !apiKey.isEmpty else {
+                throw KeyboardDictationConfigurationError.missingTranscriptionCredential
+            }
+            return TranscriptionRequest(
+                configuration: configuration,
+                apiKey: apiKey,
+                prompt: preferences.dictationDictionaryPrompt,
+                language: preferences.sttLanguage.apiCode,
+                target: .remote
+            )
+        }
+    }
+
+    private func makeKeyboardCleanupPlan(
+        preferences: AppPreferences,
+        secrets: [UUID: String]
+    ) throws -> CleanupPlan? {
+        guard preferences.cleanupEnabled else { return nil }
+        guard let provider = preferences.provider(for: preferences.selectedTTTProviderID) else {
+            throw KeyboardDictationConfigurationError.noCleanupProvider
+        }
+
+        let steps: [CleanupStep]
+        let kind: CleanupPlanKind
+        switch preferences.activeCleanupSelection {
+        case .prompt(let id):
+            guard let prompt = preferences.cleanupPrompts.first(where: { $0.id == id }) else {
+                throw KeyboardDictationConfigurationError.invalidCleanupSelection
+            }
+            steps = [CleanupStep(promptID: prompt.id, promptName: prompt.name, prompt: prompt.instructions)]
+            kind = .prompt
+        case .workflow(let id):
+            guard let workflow = preferences.cleanupWorkflows.first(where: { $0.id == id }), workflow.isValid else {
+                throw KeyboardDictationConfigurationError.invalidCleanupSelection
+            }
+            let prompts = workflow.promptIDs.compactMap { promptID in
+                preferences.cleanupPrompts.first(where: { $0.id == promptID })
+            }
+            guard prompts.count == workflow.promptIDs.count else {
+                throw KeyboardDictationConfigurationError.invalidCleanupSelection
+            }
+            steps = prompts.map { CleanupStep(promptID: $0.id, promptName: $0.name, prompt: $0.instructions) }
+            kind = .workflow(id: workflow.id, name: workflow.name)
+        case nil:
+            throw KeyboardDictationConfigurationError.invalidCleanupSelection
+        }
+
+        switch provider {
+        case .apple:
+            return CleanupPlan(
+                configuration: .openAIResponses,
+                apiKey: "",
+                format: .responses,
+                failurePolicy: preferences.cleanupFailurePolicy,
+                target: .apple(localeIdentifier: preferences.sttLanguage.apiCode),
+                kind: kind,
+                steps: steps
+            )
+        case .codex:
+            throw KeyboardDictationConfigurationError.unsupportedCleanupProvider
+        case .remote(let profile):
+            guard let configuration = profile.configuration(for: .ttt) else {
+                throw KeyboardDictationConfigurationError.noCleanupProvider
+            }
+            guard let apiKey = secrets[profile.id], !apiKey.isEmpty else {
+                throw KeyboardDictationConfigurationError.missingCleanupCredential
+            }
+            return CleanupPlan(
+                configuration: configuration,
+                apiKey: apiKey,
+                format: profile.ttt?.format ?? .responses,
+                failurePolicy: preferences.cleanupFailurePolicy,
+                target: profile.kind == .anthropic ? .anthropic : .remote,
+                kind: kind,
+                steps: steps
+            )
         }
     }
 

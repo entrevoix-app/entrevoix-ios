@@ -4,6 +4,7 @@ import Combine
 
 struct RootView: View {
     @Bindable var model: PreferencesModel
+    @Bindable var dictationBridge: DictationBridge
     @State private var selectedTab: RootTab = .dictation
     @Environment(\.scenePhase) private var scenePhase
 
@@ -41,6 +42,13 @@ struct RootView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.refreshCleanupLibrary() }
+        }
+        .onOpenURL { dictationBridge.handle(url: $0) }
+        .fullScreenCover(isPresented: $dictationBridge.isPresented) {
+            NavigationStack {
+                DictationBridgeView(bridge: dictationBridge)
+            }
+            .interactiveDismissDisabled(dictationBridge.state == .transcribing)
         }
     }
 

@@ -33,6 +33,7 @@
     <string>Entrevoix needs microphone access to transcribe your speech.</string>
     <key>UIBackgroundModes</key>
     <array>
+        <string>audio</string>
         <string>remote-notification</string>
     </array>
     <key>UILaunchScreen</key>
