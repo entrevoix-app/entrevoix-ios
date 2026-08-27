@@ -173,17 +173,24 @@ private struct ProvidersSettingsView: View {
         Form {
             Section {
                 if model.preferences.providerCatalog.isEmpty {
-                    ContentUnavailableView("No provider configured", systemImage: "network", description: Text("Add OpenAI, OpenAI-compatible, or Anthropic providers."))
-                    Button("Add provider") { isAddingProvider = true }
+                    ContentUnavailableView("No provider configured", systemImage: "network", description: Text("Add Apple Foundation, OpenAI, OpenAI-compatible, or Anthropic providers."))
                 } else {
                     ForEach(model.preferences.providerCatalog) { provider in
                         Label(provider.displayName, systemImage: provider.systemImageName)
                     }
-                    Button("Add another provider") { isAddingProvider = true }
                 }
             }
         }
-        .sheet(isPresented: $isAddingProvider) { AddProviderView(model: model) }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Add provider", systemImage: "plus") { isAddingProvider = true }
+            }
+        }
+        .sheet(isPresented: $isAddingProvider) {
+            AddProviderCatalogView(model: model)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 }
 
@@ -485,63 +492,202 @@ private struct AddDictionaryTermView: View {
     }
 }
 
-private struct AddProviderView: View {
+private struct AddProviderCatalogView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var model: PreferencesModel
-    @State private var apiKey = ""
-    @State private var baseURL = ""
-    @State private var kind: ProviderKind = .openAI
+    @State private var configurationKind: ProviderKind?
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Provider") {
-                    Picker("Provider", selection: $kind) {
-                        ForEach(ProviderKind.allCases) { kind in
-                            Text(kind.title).tag(kind)
-                        }
-                    }
-                }
-                if kind == .openAICompatible {
-                    Section {
-                        TextField("Base URL", text: $baseURL)
-                            .keyboardType(.URL)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    } header: {
-                        Text("Connection")
-                    } footer: {
-                        Text("Enter the provider address, for example https://api.example.com/v1.")
-                    }
-                }
-                Section {
-                    SecureField("API key", text: $apiKey)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                } footer: {
-                    Text("The key is stored in the device Keychain; it is never written to Entrevoix preferences.")
+            Group {
+                if let configurationKind {
+                    AddRemoteProviderView(
+                        model: model,
+                        kind: configurationKind,
+                        onBack: { self.configurationKind = nil }
+                    )
+                } else {
+                    providerCatalog
                 }
             }
-            .navigationTitle(kind.title)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
-                        let didAdd: Bool
-                        switch kind {
-                        case .openAI:
-                            didAdd = model.addOpenAIProvider(apiKey: apiKey)
-                        case .openAICompatible:
-                            didAdd = model.addOpenAICompatibleProvider(baseURL: baseURL, apiKey: apiKey)
-                        case .anthropic:
-                            didAdd = model.addAnthropicProvider(apiKey: apiKey)
-                        }
-                        if didAdd {
-                            dismiss()
-                        }
+        }
+    }
+
+    private var providerCatalog: some View {
+        List {
+            Section("Available providers") {
+                if !model.preferences.providerCatalog.contains(where: { $0.id == .apple }) {
+                    ProviderCatalogItem(
+                        title: "Apple Foundation",
+                        icon: .system("apple.logo"),
+                        accessibilityHint: "Add provider"
+                    ) {
+                        model.addAppleProvider()
+                        dismiss()
                     }
-                    .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (kind == .openAICompatible && baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
                 }
+
+                ProviderCatalogItem(title: "OpenAI", icon: .openAI, accessibilityHint: "Configure provider") {
+                    configurationKind = .openAI
+                }
+                ProviderCatalogItem(title: "Anthropic", icon: .anthropic, accessibilityHint: "Configure provider") {
+                    configurationKind = .anthropic
+                }
+                ProviderCatalogItem(title: "OpenAI-compatible", icon: .system("network"), accessibilityHint: "Configure provider") {
+                    configurationKind = .openAICompatible
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .navigationTitle("Add a provider")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+            }
+        }
+    }
+}
+
+private struct ProviderCatalogItem: View {
+    let title: String
+    let icon: ProviderCatalogIcon.Kind
+    let accessibilityHint: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                ProviderCatalogIcon(icon: icon)
+                    .accessibilityHidden(true)
+                Text(title)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 12)
+                Image(systemName: "plus")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityHint(accessibilityHint)
+    }
+}
+
+private struct ProviderCatalogIcon: View {
+    static let size: CGFloat = 28
+
+    enum Kind {
+        case openAI
+        case anthropic
+        case system(String)
+    }
+
+    let icon: Kind
+
+    var body: some View {
+        Group {
+            switch icon {
+            case .openAI:
+                Image("ProviderOpenAI")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .padding(4)
+            case .anthropic:
+                Image("ProviderAnthropic")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .padding(5)
+            case .system(let name):
+                Image(systemName: name)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Color.accentColor)
+            }
+        }
+        .frame(width: Self.size, height: Self.size)
+        .background(backgroundColor, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .overlay {
+            if isRemoteProvider {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(Color(uiColor: .separator), lineWidth: 1)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+    }
+
+    private var isRemoteProvider: Bool {
+        switch icon {
+        case .openAI, .anthropic: true
+        case .system: false
+        }
+    }
+
+    private var backgroundColor: Color {
+        switch icon {
+        case .openAI, .anthropic:
+            Color(uiColor: .secondarySystemGroupedBackground)
+        case .system:
+            Color.accentColor.opacity(0.14)
+        }
+    }
+}
+
+private struct AddRemoteProviderView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Bindable var model: PreferencesModel
+    let kind: ProviderKind
+    let onBack: () -> Void
+    @State private var apiKey = ""
+    @State private var baseURL = ""
+
+    var body: some View {
+        Form {
+            if kind == .openAICompatible {
+                Section {
+                    TextField("Base URL", text: $baseURL)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                } header: {
+                    Text("Connection")
+                } footer: {
+                    Text("Enter the provider address, for example https://api.example.com/v1.")
+                }
+            }
+            Section {
+                SecureField("API key", text: $apiKey)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            } footer: {
+                Text("The key is stored in the device Keychain; it is never written to Entrevoix preferences.")
+            }
+        }
+        .navigationTitle(kind.title)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: onBack) {
+                    Label("All providers", systemImage: "chevron.left")
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Add") {
+                    let didAdd: Bool
+                    switch kind {
+                    case .openAI:
+                        didAdd = model.addOpenAIProvider(apiKey: apiKey)
+                    case .openAICompatible:
+                        didAdd = model.addOpenAICompatibleProvider(baseURL: baseURL, apiKey: apiKey)
+                    case .anthropic:
+                        didAdd = model.addAnthropicProvider(apiKey: apiKey)
+                    }
+                    if didAdd {
+                        dismiss()
+                    }
+                }
+                .disabled(apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (kind == .openAICompatible && baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
             }
         }
     }

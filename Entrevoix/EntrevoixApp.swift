@@ -6,11 +6,13 @@ struct EntrevoixApp: App {
     @State private var preferences: PreferencesModel
 
     init() {
-        _preferences = State(
-            initialValue: NSClassFromString("XCTestCase") == nil
-                ? PreferencesModel(cleanupLibraryCloudStore: CloudKitCleanupLibraryStore())
-                : PreferencesModel()
-        )
+        let preferences = if NSClassFromString("XCTestCase") == nil,
+                             CloudKitSyncAvailability.isAvailable {
+            PreferencesModel(cleanupLibraryCloudStore: CloudKitCleanupLibraryStore())
+        } else {
+            PreferencesModel()
+        }
+        _preferences = State(initialValue: preferences)
     }
 
     var body: some Scene {

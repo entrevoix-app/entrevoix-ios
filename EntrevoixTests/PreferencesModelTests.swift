@@ -59,6 +59,33 @@ struct PreferencesModelTests {
         #expect(savedPreferences?.cleanupEnabled == false)
     }
 
+    @Test("CloudKit sync is disabled on the simulator")
+    func cloudKitSyncAvailabilityDisablesSimulator() {
+        #expect(!CloudKitSyncAvailability.isAvailable(isSimulator: true))
+        #expect(CloudKitSyncAvailability.isAvailable(isSimulator: false))
+    }
+
+    @Test("Adding Apple Foundation persists once without changing provider selections")
+    func addingAppleProviderPreservesSelectionsAndAvoidsDuplicates() {
+        let remoteProvider = RemoteProviderProfile.openAI()
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(remoteProvider)]
+        preferences.selectedSTTProviderID = .remote(remoteProvider.id)
+        preferences.selectedTTTProviderID = .remote(remoteProvider.id)
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(preferences))
+        let secretStore = SecretStoreSpy()
+        let model = PreferencesModel(preferencesStore: preferencesStore, secretStore: secretStore)
+
+        model.addAppleProvider()
+        model.addAppleProvider()
+
+        #expect(model.preferences.providerCatalog == [.remote(remoteProvider), .apple])
+        #expect(model.preferences.selectedSTTProviderID == .remote(remoteProvider.id))
+        #expect(model.preferences.selectedTTTProviderID == .remote(remoteProvider.id))
+        #expect(preferencesStore.saved == [model.preferences])
+        #expect(secretStore.saved.isEmpty)
+    }
+
     @Test("Adding an OpenAI provider persists its key separately")
     func addingOpenAIProviderPersistsKeySeparately() throws {
         let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(AppPreferences()))

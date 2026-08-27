@@ -62,6 +62,12 @@ final class PreferencesModel {
         addRemoteProvider(RemoteProviderProfile.openAI(), apiKey: apiKey)
     }
 
+    func addAppleProvider() {
+        guard !preferences.providerCatalog.contains(where: { $0.id == .apple }) else { return }
+        preferences.providerCatalog.append(.apple)
+        persist()
+    }
+
     @discardableResult
     func addDictionaryTerm(_ rawTerm: String) -> Bool {
         guard let term = AppPreferences.normalizedDictationDictionary([rawTerm]).first,
