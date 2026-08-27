@@ -175,6 +175,11 @@ final class KeyboardViewController: UIInputViewController {
               Date.now.timeIntervalSince(request.createdAt) < 5 * 60
         else { return }
 
+        if isMicrophonePreparationExpired(for: request) {
+            abandonMicrophonePreparation(requestID: request.id, showFeedback: false)
+            return
+        }
+
         activeRequestID = request.id
         if KeyboardHandoffStore.readResult()?.requestID != request.id {
             model.isDictationActive = true
@@ -204,10 +209,7 @@ final class KeyboardViewController: UIInputViewController {
                 guard let self, let requestID = self.activeRequestID else { return }
                 let result = KeyboardHandoffStore.readResult()
                 guard result?.requestID != requestID || result?.state == .requested else { return }
-                self.finish(
-                    requestID: requestID,
-                    message: String(localized: "Microphone preparation took too long. Open Entrevoix, then try again.")
-                )
+                self.abandonMicrophonePreparation(requestID: requestID, showFeedback: true)
             }
         }
     }
@@ -232,10 +234,7 @@ final class KeyboardViewController: UIInputViewController {
         switch result.state {
         case .requested:
             if isMicrophonePreparationExpired(for: activeRequestID) {
-                finish(
-                    requestID: activeRequestID,
-                    message: String(localized: "Microphone preparation took too long. Open Entrevoix, then try again.")
-                )
+                abandonMicrophonePreparation(requestID: activeRequestID, showFeedback: true)
                 return
             }
             model.isDictationActive = true
@@ -262,12 +261,30 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func isMicrophonePreparationExpired(for requestID: UUID) -> Bool {
-        guard let request = KeyboardHandoffStore.readRequest(),
-              request.id == requestID,
-              request.command == .start
+        guard let request = KeyboardHandoffStore.readRequest(), request.id == requestID else { return false }
+        return isMicrophonePreparationExpired(for: request)
+    }
+
+    private func isMicrophonePreparationExpired(for request: KeyboardDictationRequest) -> Bool {
+        guard request.command == .start,
+              KeyboardHandoffStore.readResult()?.requestID == request.id,
+              KeyboardHandoffStore.readResult()?.state == .requested
         else { return false }
 
         return Date.now.timeIntervalSince(request.createdAt) >= Self.microphonePreparationTimeout
+    }
+
+    private func abandonMicrophonePreparation(requestID: UUID, showFeedback: Bool) {
+        handoffTimeoutTimer?.invalidate()
+        handoffTimeoutTimer = nil
+        KeyboardHandoffStore.writeRequest(KeyboardDictationRequest(id: requestID, command: .cancel))
+        KeyboardHandoffStore.notifyCommand()
+        activeRequestID = nil
+        model.isDictationActive = false
+        model.isReadyToStop = false
+        model.statusMessage = showFeedback
+            ? String(localized: "Microphone preparation took too long. Open Entrevoix, then try again.")
+            : String(localized: "Tap to start dictating")
     }
 
     private func finish(requestID: UUID, message: String) {

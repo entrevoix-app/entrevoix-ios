@@ -132,7 +132,9 @@ final class DictationBridge {
 
         switch command.command {
         case .start:
-            if activeRequest == nil { begin(command) }
+            guard command.id != activeRequest?.id else { return }
+            if activeRequest != nil { coordinator.cancelRecording() }
+            begin(command)
         case .stop:
             guard command.id == activeRequest?.id, let dictationRequest = activeDictationRequest else { return }
             coordinator.stopRecording(request: dictationRequest)
