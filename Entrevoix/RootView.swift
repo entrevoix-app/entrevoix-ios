@@ -36,6 +36,9 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .cleanupLibraryCloudChange)) { _ in
             model.refreshCleanupLibrary()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .dictationDictionaryCloudChange)) { _ in
+            model.refreshDictationDictionary()
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.refreshCleanupLibrary() }
         }
