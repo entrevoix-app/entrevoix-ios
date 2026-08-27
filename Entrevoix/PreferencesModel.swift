@@ -12,6 +12,7 @@ final class PreferencesModel {
     private let codexCredentialsStore: any CodexCredentialsStoring
     private let codexAuthenticator: any CodexAuthenticating
     private let cleanupLibraryCloudSync: CleanupLibraryCloudSync
+    private let dictationDictionaryCloudSync: DictationDictionaryCloudSync
 
     var preferences: AppPreferences
     var recoveryMessage: String?
@@ -26,7 +27,8 @@ final class PreferencesModel {
         modelCatalog: any RemoteModelDiscovering = RemoteModelCatalogClient(),
         codexCredentialsStore: any CodexCredentialsStoring = CodexCredentialVault(),
         codexAuthenticator: any CodexAuthenticating = CodexBrowserAuthenticator(),
-        cleanupLibraryCloudStore: any CleanupLibraryCloudStoring = UnavailableCleanupLibraryCloudStore()
+        cleanupLibraryCloudStore: any CleanupLibraryCloudStoring = UnavailableCleanupLibraryCloudStore(),
+        dictationDictionaryCloudStore: any DictationDictionaryCloudStoring = UnavailableDictationDictionaryCloudStore()
     ) {
         self.preferencesStore = preferencesStore
         self.secretStore = secretStore
@@ -34,6 +36,7 @@ final class PreferencesModel {
         self.codexCredentialsStore = codexCredentialsStore
         self.codexAuthenticator = codexAuthenticator
         self.cleanupLibraryCloudSync = CleanupLibraryCloudSync(store: cleanupLibraryCloudStore)
+        self.dictationDictionaryCloudSync = DictationDictionaryCloudSync(store: dictationDictionaryCloudStore)
 
         switch preferencesStore.load() {
         case .loaded(let savedPreferences):
@@ -56,6 +59,12 @@ final class PreferencesModel {
             ),
             seedLocalLibrary: cleanupLibraryDiffersFromDefault
         )
+        dictationDictionaryCloudSync.onRemoteTerms = { [weak self] terms in
+            guard let self else { return }
+            self.preferences.dictationDictionary = AppPreferences.normalizedDictationDictionary(terms)
+            self.persist()
+        }
+        dictationDictionaryCloudSync.start(with: preferences.dictationDictionary, seedLocalTerms: !preferences.dictationDictionary.isEmpty)
 
         if preferences.providerCatalog.contains(where: { $0.id == .codex }) {
             refreshCodexConnectionState()
@@ -137,12 +146,14 @@ final class PreferencesModel {
 
         preferences.dictationDictionary.append(term)
         persist()
+        dictationDictionaryCloudSync.publish(preferences.dictationDictionary)
         return true
     }
 
     func removeDictionaryTerms(at offsets: IndexSet) {
         preferences.dictationDictionary.remove(atOffsets: offsets)
         persist()
+        dictationDictionaryCloudSync.publish(preferences.dictationDictionary)
     }
 
     @discardableResult
@@ -228,6 +239,8 @@ final class PreferencesModel {
     func refreshCleanupLibrary() {
         cleanupLibraryCloudSync.refresh()
     }
+
+    func refreshDictationDictionary() { dictationDictionaryCloudSync.refresh() }
 
     func setActiveCleanupPrompt(_ id: UUID?) {
         let selection = id.map(CleanupTransformationSelection.prompt)
@@ -446,5 +459,14 @@ private final class UnavailableCleanupLibraryCloudStore: CleanupLibraryCloudStor
         throw UnavailableError()
     }
 
+    private struct UnavailableError: Error {}
+}
+
+@MainActor
+private final class UnavailableDictationDictionaryCloudStore: DictationDictionaryCloudStoring {
+    func bootstrap(localTerms _: [String], seedLocalTerms _: Bool) async throws -> [String] { throw UnavailableError() }
+    func fetchTerms() async throws -> [String]? { throw UnavailableError() }
+    func saveTerms(_: [String], replacing _: [String]?) async throws { throw UnavailableError() }
+    func ensureSubscription(id _: String) async throws {}
     private struct UnavailableError: Error {}
 }

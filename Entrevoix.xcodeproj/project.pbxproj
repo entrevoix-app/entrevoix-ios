@@ -394,7 +394,7 @@
 				DEVELOPMENT_TEAM = UJ68S9Y37U;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Entrevoix-Info.plist;
+				INFOPLIST_FILE = "Entrevoix-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.0;
@@ -420,7 +420,7 @@
 				DEVELOPMENT_TEAM = UJ68S9Y37U;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Entrevoix-Info.plist;
+				INFOPLIST_FILE = "Entrevoix-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.0;
