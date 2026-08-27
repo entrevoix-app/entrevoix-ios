@@ -132,7 +132,8 @@ struct PreferencesModelTests {
         #expect(model.preferences.selectedSTTProviderID == sttProviderID)
         #expect(model.preferences.selectedTTTProviderID == .remote(provider.id))
         #expect(model.preferences.cleanupEnabled)
-        #expect(secretStore.saved.last == [provider.id: "anthropic-key"])
+        #expect(secretStore.saved.last?[sttProviderID?.remoteID ?? UUID()] == "openai-key")
+        #expect(secretStore.saved.last?[provider.id] == "anthropic-key")
     }
 
     @Test("Adding an OpenAI-compatible provider persists its address and key")
@@ -177,6 +178,52 @@ struct PreferencesModelTests {
         #expect(secretStore.saved.isEmpty)
         #expect(preferencesStore.saved.isEmpty)
         #expect(model.configurationError?.contains("super-secret") == false)
+    }
+
+    @Test("Editing a remote provider preserves its identity, selections, and current key")
+    func editingRemoteProviderPreservesSelectionsAndCurrentKey() throws {
+        var provider = RemoteProviderProfile.compatible()
+        provider.baseURL = "https://old.example.com/v1"
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(provider)]
+        preferences.selectedSTTProviderID = .remote(provider.id)
+        let preferencesStore = PreferencesStoreSpy(loadResult: .loaded(preferences))
+        let secretStore = SecretStoreSpy(secrets: [provider.id: "current-key"])
+        let model = PreferencesModel(preferencesStore: preferencesStore, secretStore: secretStore)
+
+        provider.baseURL = " https://new.example.com/v1 "
+        let didUpdate = model.updateRemoteProvider(provider, apiKey: "")
+
+        let entry = try #require(model.preferences.providerCatalog.first)
+        guard case .remote(let savedProvider) = entry else {
+            Issue.record("Expected an edited remote provider")
+            return
+        }
+        #expect(didUpdate)
+        #expect(savedProvider.id == provider.id)
+        #expect(savedProvider.baseURL == "https://new.example.com/v1")
+        #expect(model.preferences.selectedSTTProviderID == .remote(provider.id))
+        #expect(secretStore.saved.isEmpty)
+        #expect(preferencesStore.saved.last?.providerCatalog == [.remote(savedProvider)])
+    }
+
+    @Test("Replacing a provider key retains the keys of other configured providers")
+    func replacingProviderKeyRetainsOtherProviderKeys() {
+        let openAI = RemoteProviderProfile.openAI()
+        var compatible = RemoteProviderProfile.compatible()
+        compatible.baseURL = "https://models.example.com/v1"
+        var preferences = AppPreferences()
+        preferences.providerCatalog = [.remote(openAI), .remote(compatible)]
+        let secretStore = SecretStoreSpy(secrets: [openAI.id: "openai-key", compatible.id: "old-compatible-key"])
+        let model = PreferencesModel(
+            preferencesStore: PreferencesStoreSpy(loadResult: .loaded(preferences)),
+            secretStore: secretStore
+        )
+
+        compatible.baseURL = "https://updated.example.com/v1"
+        #expect(model.updateRemoteProvider(compatible, apiKey: "new-compatible-key"))
+        #expect(secretStore.saved.last?[openAI.id] == "openai-key")
+        #expect(secretStore.saved.last?[compatible.id] == "new-compatible-key")
     }
 
     @Test("An Anthropic keychain failure restores the previous cleanup selection")
@@ -420,19 +467,22 @@ private final class PreferencesStoreSpy: PreferencesStoring {
 private final class SecretStoreSpy: SecretStoring {
     let saveError: (any Error)?
     private(set) var saved: [[UUID: String]] = []
+    private var secrets: [UUID: String]
 
-    init(saveError: (any Error)? = nil) {
+    init(secrets: [UUID: String] = [:], saveError: (any Error)? = nil) {
+        self.secrets = secrets
         self.saveError = saveError
     }
 
     func read(profileIDs: [UUID]) throws -> [UUID: String] {
-        [:]
+        secrets.filter { profileIDs.contains($0.key) }
     }
 
     func save(_ secrets: [UUID: String]) throws {
         if let saveError {
             throw saveError
         }
+        self.secrets = secrets
         saved.append(secrets)
     }
 }

@@ -168,6 +168,7 @@ private struct GeneralSettingsView: View {
 private struct ProvidersSettingsView: View {
     @Bindable var model: PreferencesModel
     @State private var isAddingProvider = false
+    @State private var providerBeingEdited: RemoteProviderProfile?
 
     var body: some View {
         Form {
@@ -176,7 +177,26 @@ private struct ProvidersSettingsView: View {
                     ContentUnavailableView("No provider configured", systemImage: "network", description: Text("Add Apple Foundation, OpenAI, OpenAI-compatible, or Anthropic providers."))
                 } else {
                     ForEach(model.preferences.providerCatalog) { provider in
-                        Label(provider.displayName, systemImage: provider.systemImageName)
+                        if let remoteProvider = provider.remoteProfile {
+                            Button { providerBeingEdited = remoteProvider } label: {
+                                HStack(spacing: 12) {
+                                    ProviderCatalogIcon(icon: remoteProvider.catalogIcon)
+                                        .accessibilityHidden(true)
+                                    Text(remoteProvider.name)
+                                        .foregroundStyle(.primary)
+                                    Spacer(minLength: 12)
+                                    Image(systemName: "chevron.right")
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                        .accessibilityHidden(true)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("Edit provider")
+                        } else {
+                            Label(provider.displayName, systemImage: provider.systemImageName)
+                        }
                     }
                 }
             }
@@ -190,6 +210,9 @@ private struct ProvidersSettingsView: View {
             AddProviderCatalogView(model: model)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $providerBeingEdited) { provider in
+            EditRemoteProviderView(model: model, provider: provider)
         }
     }
 }
@@ -693,6 +716,73 @@ private struct AddRemoteProviderView: View {
     }
 }
 
+private struct EditRemoteProviderView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Bindable var model: PreferencesModel
+    let provider: RemoteProviderProfile
+    @State private var apiKey = ""
+    @State private var baseURL: String
+
+    init(model: PreferencesModel, provider: RemoteProviderProfile) {
+        self.model = model
+        self.provider = provider
+        _baseURL = State(initialValue: provider.baseURL)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if provider.kind == .openAICompatible {
+                    Section {
+                        TextField("Base URL", text: $baseURL)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    } header: {
+                        Text("Connection")
+                    } footer: {
+                        Text("Enter the provider address, for example https://api.example.com/v1.")
+                    }
+                }
+
+                Section {
+                    SecureField("New API key", text: $apiKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                } footer: {
+                    Text("Leave this field blank to keep the current key. A replacement key is stored in the device Keychain.")
+                }
+
+                if let configurationError = model.configurationError {
+                    Section {
+                        Text(configurationError)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .navigationTitle("Edit \(provider.name)")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        var updatedProvider = provider
+                        if updatedProvider.kind == .openAICompatible {
+                            updatedProvider.baseURL = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+                        }
+                        if model.updateRemoteProvider(updatedProvider, apiKey: apiKey) {
+                            dismiss()
+                        }
+                    }
+                    .disabled(provider.kind == .openAICompatible && baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+}
+
 private enum ProviderKind: CaseIterable, Identifiable {
     case openAI
     case openAICompatible
@@ -705,6 +795,16 @@ private enum ProviderKind: CaseIterable, Identifiable {
         case .openAI: "OpenAI"
         case .openAICompatible: "OpenAI-compatible"
         case .anthropic: "Anthropic"
+        }
+    }
+}
+
+private extension RemoteProviderProfile {
+    var catalogIcon: ProviderCatalogIcon.Kind {
+        switch kind {
+        case .openAI: .openAI
+        case .openAICompatible: .system("network")
+        case .anthropic: .anthropic
         }
     }
 }

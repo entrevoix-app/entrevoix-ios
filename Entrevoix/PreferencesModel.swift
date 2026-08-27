@@ -95,6 +95,43 @@ final class PreferencesModel {
         return addRemoteProvider(provider, apiKey: apiKey)
     }
 
+    @discardableResult
+    func updateRemoteProvider(_ provider: RemoteProviderProfile, apiKey: String) -> Bool {
+        guard let index = preferences.providerCatalog.firstIndex(where: { $0.id == .remote(provider.id) }) else {
+            return false
+        }
+
+        var updatedProvider = provider
+        updatedProvider.baseURL = updatedProvider.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        updatedProvider.normalizeFixedProviderFields()
+
+        do {
+            let existingSecrets = try secretStore.read(profileIDs: remoteProviderIDs)
+            let replacementKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            let keyToValidate = replacementKey.isEmpty ? existingSecrets[updatedProvider.id] ?? "" : replacementKey
+
+            guard updatedProvider.validationIssues(apiKey: keyToValidate).isEmpty,
+                  updatedProvider.configuration(for: updatedProvider.stt == nil ? .ttt : .stt)?.endpointURL != nil else {
+                configurationError = String(localized: "Enter a valid http:// or https:// URL.")
+                return false
+            }
+
+            if !replacementKey.isEmpty {
+                var secrets = existingSecrets
+                secrets[updatedProvider.id] = replacementKey
+                try secretStore.save(secrets)
+            }
+
+            preferences.providerCatalog[index] = .remote(updatedProvider)
+            persist()
+            configurationError = nil
+            return true
+        } catch {
+            configurationError = String(localized: "The API key could not be stored securely.") + " " + error.localizedDescription
+            return false
+        }
+    }
+
     func reset() {
         preferencesStore.reset()
         preferences = AppPreferences()
@@ -193,7 +230,9 @@ final class PreferencesModel {
         }
 
         do {
-            try secretStore.save([provider.id: apiKey])
+            var secrets = try secretStore.read(profileIDs: remoteProviderIDs)
+            secrets[provider.id] = apiKey
+            try secretStore.save(secrets)
             persist()
             configurationError = nil
             return true
@@ -219,6 +258,10 @@ final class PreferencesModel {
                 workflows: preferences.cleanupWorkflows
             )
         )
+    }
+
+    private var remoteProviderIDs: [UUID] {
+        preferences.providerCatalog.compactMap(\.remoteProfile?.id)
     }
 
     private func synchronizeLegacyPrompt() {
